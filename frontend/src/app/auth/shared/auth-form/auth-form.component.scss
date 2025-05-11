@@ -1,0 +1,114 @@
+.login-form {
+    width: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 10%;
+    form {
+      width: 55%;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+      label {
+        display: block;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+      }
+      .input-field {
+        width: 95%;
+        padding: 0.75rem;
+        border: 1px solid var(--primary-color);
+        border-radius: 2rem;
+        font-size: 1rem;
+        color: var(--primary-color);
+      }
+      .error-message {
+        color: var(--secondary-text-color);
+        font-size: 0.875rem;
+        margin: 0.5rem;
+      }
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        .input-field {
+          padding-right: 2.5rem;
+        }
+        #email {
+          padding-left: 2.5rem;
+        }
+      }
+      .eye-icon {
+        position: absolute;
+        right: 0.75rem;
+        cursor: pointer;
+        user-select: none;
+        img{
+          width: 20px;
+          height: 20px;
+        }
+      }
+      .mail-icon {
+        position: absolute;
+        left: 0.75rem;
+        img{
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+    .button {
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      background-color: var(--primary-color);
+      color: var(--bg-color);
+      margin-top: 2rem;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+    }
+    .google-button {
+      img {
+        padding-right: 1rem;
+      }
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-toggle-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--secondary-text-color);
+      a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 700;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    }
+    .or-divider {
+      display: flex;
+      align-items: center;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 0.063rem;
+      border-top: 1px solid var(--secondary-card-color);
+    }
+    
+    .or-divider span {
+      color: var(--primary-color);
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 0 1rem;
+    }
+  }

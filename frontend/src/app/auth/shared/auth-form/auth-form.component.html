@@ -1,0 +1,62 @@
+<div class="login-form">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Username field - only shown for sign up -->
+    <div class="form-group" *ngIf="!isSignIn">
+      <label for="username">Username</label>
+      <input type="text" id="username" formControlName="username" class="input-field" required/>
+      <div *ngIf="form.get('username')?.invalid && form.get('username')?.touched" class="error-message">
+        Username is required
+      </div>
+    </div>
+
+    <!-- Email field -->
+    <div class="form-group">
+      <label for="email">Email</label>
+      <div class="input-wrapper">
+        <span class="mail-icon">
+          <img src="./assets/icons/mail.svg">
+        </span>
+        <input type="email" id="email" formControlName="email" class="input-field" required/>
+      </div>
+      <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="error-message">
+        Please enter a valid email
+      </div>
+    </div>
+
+    <!-- Password field -->
+    <div class="form-group">
+      <label for="password">Password</label>
+      <div class="input-wrapper">
+        <input [type]="showPassword ? 'text' : 'password'" id="password" formControlName="password" class="input-field" required>
+        <span class="eye-icon" (click)="togglePasswordVisibility()">
+          <img [src]="showPassword ? './assets/icons/eye.svg' : './assets/icons/eye-closed.svg'">
+        </span>
+      </div>
+      <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="error-message">
+        Password is required
+      </div>
+    </div>
+
+    <button type="submit" class="button" [disabled]="form.invalid">
+      {{ isSignIn ? 'Sign In' : 'Sign Up' }}
+    </button>
+
+    <!-- Social login - only shown for sign in -->
+    <ng-container *ngIf="isSignIn">
+      <div class="or-divider">
+        <span>Or</span>
+      </div>
+      <button class="google-button button">
+        <img src="./assets/images/google.png" alt="Google Logo"> Sign in with Google
+      </button>
+    </ng-container>
+
+    <!-- Toggle link -->
+    <p class="auth-toggle-link">
+      {{ isSignIn ? "Don't have an account?" : 'Already have an account?' }}
+      <a [routerLink]="isSignIn ? '/signup' : '/signin'">
+        {{ isSignIn ? 'Sign Up Now' : 'Sign In Now' }}
+      </a>
+    </p>
+  </form>
+</div>

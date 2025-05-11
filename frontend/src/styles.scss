@@ -1,1 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  --bg-color: #FFFFFF; /* White for background */
+  --primary-color: #4A332D; /* Dark Brown for primary buttons, cards, texts */
+  --secondary-card-color: #77625B; /* Light Brown for secondary cards */
+  --secondary-text-color: #6C4A3F; /* Medium Brown for secondary text */
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  font-family: "Mulish", sans-serif;
+}
