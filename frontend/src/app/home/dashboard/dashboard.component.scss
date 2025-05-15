@@ -1,0 +1,25 @@
+.dashboard-container{
+    display: flex;
+    height: 100vh;
+    background-color: var(--bg-color);
+    app-side-nav{
+        width: 20%;
+        height: 100vh;
+        background-color: var(--bg-color);
+    }
+    hr{
+        width: 0.15rem;
+        height: 90%;
+        display: flex;
+        margin-top: 3rem;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--primary-color);
+        
+    }
+    .Right-panel{
+        padding: 0.5rem;
+        width: 80%;
+        background-color: var(--bg-color);
+    }
+}

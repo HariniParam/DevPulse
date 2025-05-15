@@ -6,6 +6,13 @@
   --secondary-text-color: #6C4A3F; /* Medium Brown for secondary text */
 }
 
+.dark-theme {
+  --bg-color: #4A332D; /* Dark Gray for background */
+  --primary-color: #FFFFFF; /* White for primary buttons, cards, texts */
+  --secondary-card-color: #6C4A3F; /* Dark Brown for secondary cards */
+  --secondary-text-color: #77625B; /* Light Brown for secondary text */
+}
+
 * {
   padding: 0;
   margin: 0;
