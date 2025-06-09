@@ -32,7 +32,7 @@ export class SettingsComponent {
   onSubmit(): void {
     if (this.form.valid) {
       console.log('Updated details successfully');
-      this.router.navigate(['/home']);
+      this.router.navigate(['/dashboard/home']);
     }
   }
 

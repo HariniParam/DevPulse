@@ -4,10 +4,12 @@
   --primary-color: #4A332D; /* Dark Brown for primary buttons, cards, texts */
   --secondary-card-color: #77625B; /* Light Brown for secondary cards */
   --secondary-text-color: #6C4A3F; /* Medium Brown for secondary text */
+  --bg-secondary-color: #E2DAD6; 
 }
 
 .dark-theme {
   --bg-color: #4A332D; /* Dark Gray for background */
+  --bg-secondary-color: #53443e; /* Light Brown for secondary background */
   --primary-color: #FFFFFF; /* White for primary buttons, cards, texts */
   --secondary-card-color: #6C4A3F; /* Dark Brown for secondary cards */
   --secondary-text-color: #77625B; /* Light Brown for secondary text */

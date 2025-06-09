@@ -24,7 +24,7 @@ export class SigninComponent {
   onSubmit(): void {
     if (this.signinForm.valid){
       console.log("Successfully signed in");
-      this.router.navigate(['/home']);
+      this.router.navigate(['/dashboard/home']);
     }
   }
 }

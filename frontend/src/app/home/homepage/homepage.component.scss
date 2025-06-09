@@ -1,0 +1,189 @@
+.homepage-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  .left-panel{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem 0 2rem 3rem;
+    width: 70%;
+    .left-top{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0 2rem 0 0;
+        .left-top-title{
+            h3{
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--primary-color);
+            }
+            p{
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: var(--secondary-text-color);
+            }
+        }
+        .add-task{
+            background-color: var(--primary-color);
+            padding: 1rem;
+            border-radius: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--bg-color);
+            gap: 0.5rem;
+            .add-symbol{
+                padding: 0.15rem 0.15rem 0.2rem 0.15rem;
+                border: 2px solid var(--bg-color);
+                border-radius: 0.25rem;
+                height: 1rem;
+                width: 1rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+            }
+        }
+    }
+    .left-switch{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        height: 30%;
+        width: calc(100% - 2rem);
+        .switch-assesment,
+        .switch-analysis,
+        .switch-resume{
+            height: calc(100% - 1rem);
+            width: 33%;
+            border-radius: 1rem;
+            color: var(--bg-color);
+            font-weight: 700;
+            padding: 1rem 2rem 1rem 1rem;
+            h3{
+                font-size: 2rem;
+            }
+            p{
+                font-size: 0.875rem;
+            }
+            .switch-top{
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.75rem;
+                .to-do-list{
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-radius: 50%;
+                    padding: 1rem;
+                }
+            }
+            .progress-container {
+                margin-top: 1rem;
+                width: 100%;
+                border-radius: 0.75rem;
+                overflow: hidden;
+                height: 0.875rem;
+            }
+
+            .progress-bar {
+                height: 100%;
+                background-color: var(--bg-color);
+                transition: width 0.4s ease;             
+            }
+        }
+        .switch-assesment{
+            background-color: var(--primary-color);
+            .switch-top{
+                .to-do-list{
+                    background-color: color-mix(in srgb, var(--primary-color) 80%, black 20%);
+                }
+            }
+            .progress-container {
+                background-color: color-mix(in srgb, var(--primary-color) 60%, black 40%);
+            }
+        }
+        .switch-analysis{
+            background-color: var(--secondary-text-color);
+            .switch-top{
+                .to-do-list{
+                    background-color: color-mix(in srgb, var(--secondary-text-color) 80%, black 20%);
+                }
+            }
+            .progress-container {
+                background-color: color-mix(in srgb, var(--secondary-text-color) 60%, black 40%);
+            }
+        }
+        .switch-resume{
+            background-color: var(--secondary-card-color);
+            .switch-top{
+                .to-do-list{
+                    background-color: color-mix(in srgb, var(--secondary-card-color) 80%, black 20%);
+                }
+            }
+            .progress-container {
+                background-color: color-mix(in srgb, var(--secondary-card-color) 60%, black 40%);
+            }
+        }
+    }
+    .left-news{
+        height: 40%;
+        padding: 2rem;
+        margin: 0 2rem 0 0;
+        border-radius: 1rem;
+        background-color: var(--bg-secondary-color);
+        display: flex;
+        flex-direction: row;
+        gap: 1.5rem;
+        .main-news{
+            img{
+                height: 17rem;
+                width: 17rem;
+            }
+        }
+        .side-news{
+            margin-top: 0.325rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.225rem;
+            
+            .side-news-item{
+                display: flex;
+                flex-direction: row;
+                gap: 1rem;
+                img {
+                    height: 7.5rem;
+                    width: 7.5rem;   
+                }
+                .side-news-content{
+                    display: flex;
+                    flex-direction: column;
+                    hr {
+                            width: 24rem;
+                            height: 0.2rem;
+                            margin-top: 0.75rem;
+                            margin-bottom: 0.75rem;
+                            background-color: var(--primary-color);   }
+                }    
+            }
+        }
+    }
+  }
+  .right-panel{
+    width: 30%;
+    border-radius: 3rem 0 0 3rem;
+    background-color: var(--bg-secondary-color);
+    padding: 2rem;
+    .right-top{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+  }
+}
