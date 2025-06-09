@@ -32,6 +32,25 @@
         }
     }
 
+    .logout-option {
+        position: relative;
+        top: 30px;
+        left: 17px;
+        cursor: pointer;
+        align-items: center;
+        gap: 1rem;
+        margin-right: 2rem;
+        img{
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        p {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+    }
+
     .nav-links{
         display: flex;
         flex-direction: column;

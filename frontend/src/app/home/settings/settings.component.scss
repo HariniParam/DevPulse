@@ -90,18 +90,24 @@
                     }
                 }
             }
-    
-            .button {
-                cursor: pointer;
-                border: none;
-                width: 100%;
-                background-color: var(--primary-color);
-                color: var(--bg-color);
-                margin-top: 1rem;
-                padding: 0.75rem;
-                font-size: 1rem;
-                border-radius: 0.5rem;
+            .buttons{
+                display: flex;
+                flex-direction: row;
+                gap: 1rem;
+                .button {
+                    cursor: pointer;
+                    border: none;
+                    width: 100%;
+                    background-color: var(--primary-color);
+                    color: var(--bg-color);
+                    margin-top: 1rem;
+                    padding: 0.75rem;
+                    font-size: 1rem;
+                    border-radius: 0.5rem;   
+                    }
             }
+    
+            
             label{
                 display: block;
                 color: var(--primary-color);
@@ -200,6 +206,10 @@
                 width: 12rem;
                 height: 12rem;
                 z-index: 4;
+                border-radius: 50%;
+            }
+            .profile-image-label{
+                cursor: pointer;
             }
             
         }

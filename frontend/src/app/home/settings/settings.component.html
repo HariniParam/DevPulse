@@ -1,76 +1,84 @@
 <div class="settings">
     <div class="settings-container">
-        <div class="settings-header">
-            <h2>Settings</h2>
-            <hr>
-        </div>
-        <div class="login-form">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <hr />
+      </div>
+      <div class="login-form">
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-            <label for="username">Name</label>
-            <input type="text" id="username" formControlName="username" class="input-field" required/>
-            <div *ngIf="form.get('username')?.invalid && form.get('username')?.touched" class="error-message">
-                Username is required
+          <!-- Name -->
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" formControlName="name" class="input-field" required />
+            <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched" class="error-message">
+              name is required
             </div>
-            </div>
-
-            <div class="form-group">
+          </div>
+  
+          <!-- Email -->
+          <div class="form-group">
             <label for="email">Email</label>
             <div class="input-wrapper">
-                <span class="mail-icon">
-                <img src="./assets/icons/mail.svg">
-                </span>
-                <input type="email" id="email" formControlName="email" class="input-field" required/>
+              <span class="mail-icon"><img src="./assets/icons/mail.svg" /></span>
+              <input type="email" id="email" formControlName="email" class="input-field" required />
             </div>
             <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="error-message">
-                Please enter a valid email
+              Please enter a valid email
             </div>
-            </div>
-
-            <div class="form-group">
-            <label for="password">Password</label>
+          </div>
+  
+          <!-- Old Password -->
+          <div class="form-group">
+            <label for="oldPassword">Old Password</label>
             <div class="input-wrapper">
-                <input [type]="showPassword ? 'text' : 'password'" id="password" formControlName="password" class="input-field" required>
-                <span class="eye-icon" (click)="togglePasswordVisibility()">
-                <img [src]="showPassword ? './assets/icons/eye.svg' : './assets/icons/eye-closed.svg'">
-                </span>
+              <input [type]="showOldPassword ? 'text' : 'password'" id="oldPassword" formControlName="oldPassword" class="input-field" />
+              <span class="eye-icon" (click)="toggleOldPasswordVisibility()">
+                <img [src]="showOldPassword ? './assets/icons/eye.svg' : './assets/icons/eye-closed.svg'" />
+              </span>
             </div>
-            <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="error-message">
-                Password is required
+          </div>
+  
+          <!-- New Password -->
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <div class="input-wrapper">
+              <input [type]="showNewPassword ? 'text' : 'password'" id="newPassword" formControlName="newPassword" class="input-field" />
+              <span class="eye-icon" (click)="toggleNewPasswordVisibility()">
+                <img [src]="showNewPassword ? '../../../assets/icons/eye.svg' : './assets/icons/eye-closed.svg'" />
+              </span>
             </div>
-            </div>
+          </div>
+  
+          <div class="buttons">
+            <button type="submit" class="button" [disabled]="form.invalid">Update</button>
+            <button type="button" class="button" (click)="onDeleteAccount()">Delete Account</button>
+          </div>
 
-            <button type="submit" class="button" [disabled]="form.invalid">
-            Update
-            </button>
 
         </form>
+  
+        <!-- Theme Switcher -->
         <label for="Theme">Theme</label>
         <div class="theme">
-            <div class="theme-option-light" (click)="toggleTheme('light')">
-                <div class="theme-option-light-inside">
-                <h1>Aa</h1>
-                </div>
-            </div>
-            <div class="theme-option-dark" (click)="toggleTheme('dark')">
-                <div class="theme-option-dark-inside">
-                <h1>Aa</h1>
-                </div>
-            </div>
+          <div class="theme-option-light" (click)="toggleTheme('light')">
+            <div class="theme-option-light-inside"><h1>Aa</h1></div>
+          </div>
+          <div class="theme-option-dark" (click)="toggleTheme('dark')">
+            <div class="theme-option-dark-inside"><h1>Aa</h1></div>
+          </div>
         </div>
-        </div>
+      </div>
     </div>
+  
+    <!-- Gears and Profile Upload -->
     <div class="gear-wrapper">
-        <div class="gear">
-            <img src="../../../assets/images/gear_dark.png" alt="gear">
-        </div>
-        <div class="gear-small">
-            <img src="../../../assets/images/gear_medium.png" alt="small gear">
-        </div>
-        <div class="gear-medium">
-            <img src="../../../assets/images/gear_light.png" alt="medium gear">
-        </div>
-        <img src="../../../assets/images/profile.png" alt="Profile" class="profile-image">
+      <div class="gear"><img src="../../../assets/images/gear_dark.png" alt="gear" /></div>
+      <div class="gear-small"><img src="../../../assets/images/gear_medium.png" alt="small gear" /></div>
+      <div class="gear-medium"><img src="../../../assets/images/gear_light.png" alt="medium gear" /></div>
+      <label for="profilePicUpload" class="profile-image-label">
+        <img [src]="previewUrl || defaultImage" alt="Profile" class="profile-image" />
+        <input type="file" id="profilePicUpload" (change)="onFileSelected($event)" hidden />
+      </label>
     </div>
-
-</div>
+  </div>
+  
