@@ -5,3 +5,9 @@
     (submitted)="onSubmit()">
   </app-auth-form>
 </app-auth-layout>
+
+<app-popup 
+  *ngIf="showPopup"
+  [message]="popupMessage"
+  [type]="popupType">
+</app-popup>

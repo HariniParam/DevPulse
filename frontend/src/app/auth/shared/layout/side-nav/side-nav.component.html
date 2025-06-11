@@ -52,3 +52,9 @@
     </div>
 
 </div>
+
+<app-popup 
+  *ngIf="showPopup"
+  [message]="popupMessage"
+  [type]="popupType">
+</app-popup>

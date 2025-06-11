@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'users',
+    'rest_framework',
+    'resume',
 ]
 
 MIDDLEWARE = [
@@ -131,6 +133,28 @@ from decouple import config
 
 MONGO_URI = config('MONGO_URI')
 JWT_SECRET = config('JWT_SECRET')
+
+# Resume Analyzer Configuration
+ALLOWED_FILE_EXTENSIONS = ['.pdf']  # Add more extensions if needed
+UPLOAD_FILE_KEY = 'resume'  # Key expected in FormData
+RESUME_ANALYSIS_CONFIG = {
+    'model_name': 'distilbert-base-uncased',  # Hugging Face model for text evaluation
+    'categories': {
+        'content_quality': ['clarity', 'coherence', 'professional', 'tone'],
+        'skills_relevance': ['python', 'java', 'javascript', 'sql', 'aws', 'react', 'typescript'],
+        'formatting': ['structure', 'layout', 'consistency', 'readability'],
+        'conciseness': ['brief', 'concise', 'to-the-point', 'succinct'],
+        'section_completeness': ['education', 'experience', 'skills', 'objective', 'contact']
+    },
+    'weight_per_keyword': 5,
+    'max_score': 100,
+    'score_thresholds': {
+        'high': 80,
+        'medium': 50
+    },
+    'max_excerpt_length': 200
+}
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

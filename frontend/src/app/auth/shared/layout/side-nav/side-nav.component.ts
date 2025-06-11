@@ -1,19 +1,39 @@
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { PopupComponent } from "../../../../shared/popup/popup.component";
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-side-nav',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, PopupComponent,CommonModule],
   templateUrl: './side-nav.component.html',
   styleUrl: './side-nav.component.scss'
 })
 export class SideNavComponent {
   constructor(private router: Router) { }
+  
+  popupMessage: string = '';
+  popupType: 'success' | 'error' = 'success';
+  showPopup: boolean = false;
+
   logout() {
     localStorage.removeItem('token'); 
     localStorage.removeItem('user');
-    this.router.navigate(['/signin']);
+    this.showAlert('Logout successful', 'success');
+    setTimeout(() => {
+      this.router.navigate(['/signin']);
+    }, 1500);
+  }
+
+  showAlert(message: string, type: 'success' | 'error') {
+    this.popupMessage = message;
+    this.popupType = type;
+    this.showPopup = true;
+
+    setTimeout(() => {
+      this.showPopup = false;
+    }, 2000);
   }
   
 }

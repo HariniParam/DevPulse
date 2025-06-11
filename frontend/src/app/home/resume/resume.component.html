@@ -13,7 +13,7 @@
       </div>
   
       <div class="uploaded-pdf-preview" *ngIf="selectedPDF">
-        <button class="close-button" (click)="clearPDF()">x</button>
+        <button class="close-button" (click)="clearPDF()">×</button>
         <div class="pdf-file">
             <h2>{{ selectedPDF.name }}</h2>
         </div>
@@ -32,6 +32,8 @@
     <div class="right-panel-scores">
         <h2 class="right-panel-title">Resume Analysis</h2>
         <hr class="line">
+        
+        <!-- Overall Score Circle -->
         <div class="circular-score-container">
             <svg viewBox="0 0 36 36" class="circular-chart">
             <path class="circle-bg"
@@ -45,25 +47,37 @@
                     a 15.9155 15.9155 0 0 1 0 -31.831" />
             </svg>
             <p class="percentage">{{ analysisProgress.overallScore }}%</p>
-
         </div>
         
         <!-- Horizontal Progress Bars -->
-        <div class="progress-bars">
-            <div *ngFor="let a of analysisProgress.analyses" class="progress-bar-item">
-            <p class="bar-label">{{ a.name }}</p>
-            <div class="bar-container">
-                <div class="bar-fill" [style.width.%]="a.score"></div>
-            </div>
+        <div class="progress-bars" *ngIf="analysisProgress.analyses.length > 0">
+            <div *ngFor="let analysis of analysisProgress.analyses" class="progress-bar-item">
+                <div class="bar-header">
+                    <p class="bar-label">{{ analysis.displayName }}</p>
+                    <span class="bar-score">{{ analysis.score }}%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" [style.width.%]="analysis.score"></div>
+                </div>
             </div>
         </div>
         
         <!-- Summary -->
-        <div class="summary-section">
+        <div class="summary-section" *ngIf="analysisProgress.summary">
             <h3>Summary</h3>
             <p>{{ analysisProgress.summary }}</p>
         </div>
+        
+        <!-- Recommendations -->
+        <div class="recommendations-section" *ngIf="analysisProgress.recommendations">
+            <h3>Recommendations</h3>
+            <p>{{ analysisProgress.recommendations }}</p>
+        </div>
+        
+        <!-- Empty State Message -->
+        <div class="empty-state" *ngIf="!selectedPDF && analysisProgress.overallScore === 0">
+            <p>Upload a PDF resume to see your analysis results here.</p>
+        </div>
   
     </div>
-  </div>
-  
+</div>

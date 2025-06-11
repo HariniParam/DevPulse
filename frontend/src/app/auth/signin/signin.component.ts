@@ -5,17 +5,22 @@ import { AuthFormComponent } from '../shared/auth-form/auth-form.component';
 import { AuthLayoutComponent } from '../shared/auth-layout/auth-layout.component';
 import { AuthService } from '../../services/auth.service'; 
 import { HttpClientModule } from '@angular/common/http';
+import { PopupComponent } from "../../shared/popup/popup.component";
+import { CommonModule } from '@angular/common';
 
 
 @Component({
   selector: 'app-signin',
   standalone: true,
-  imports: [AuthFormComponent, AuthLayoutComponent, HttpClientModule ],
+  imports: [AuthFormComponent, AuthLayoutComponent, HttpClientModule, PopupComponent,CommonModule],
   templateUrl: './signin.component.html',
   styleUrl: './signin.component.scss'
 })
 export class SigninComponent {
   signinForm!: FormGroup;
+  popupMessage: string = '';
+  popupType: 'success' | 'error' = 'success';
+  showPopup: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -29,16 +34,35 @@ export class SigninComponent {
   }
 
   onSubmit(): void {
+    if (this.signinForm.invalid) {
+      this.showAlert('Please fill in all required fields correctly.', 'error');
+      return;
+    }
+
     if (this.signinForm.valid) {
       this.authService.signin(this.signinForm.value).subscribe({
         next: (res) => {
-          console.log('Login success:', res);
-          this.router.navigate(['/dashboard/home']);
+          this.showAlert('Login successful', 'success');
+          setTimeout(() => {
+            this.router.navigate(['/dashboard/home']);
+          }, 2000);
         },
         error: (err) => {
-          console.error('Login error', err);
+          this.showAlert('Login failed. Please check your credentials.', 'error');
         }
       });
     }
   }
+
+
+  showAlert(message: string, type: 'success' | 'error') {
+    this.popupMessage = message;
+    this.popupType = type;
+    this.showPopup = true;
+
+    setTimeout(() => {
+      this.showPopup = false;
+    }, 2000);
+  }
+
 }

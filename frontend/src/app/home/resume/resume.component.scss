@@ -128,7 +128,7 @@
 
 .circle-bg {
     fill: none;
-    stroke: #eee;
+    stroke: var(--bg-color);
     stroke-width: 4;
 }
 
@@ -167,7 +167,7 @@
 
 .bar-container {
     height: 0.875rem;
-    background-color: #fff;
+    background-color: var(--bg-color);
     border-radius: 1rem;
     overflow: hidden;
 }
@@ -179,14 +179,25 @@
 }
 
 /* Summary section */
-.summary-section {
+.summary-section,
+.recommendations-section{
     padding: 1rem;
     font-size: 1.1rem;
     color: var(--text-secondary-color);
 }
 
-.summary-section h3 {
+.summary-section h3 ,
+.recommendations-section h3{
     font-size: 1.75rem;
     margin-bottom: 0.5rem;
     color: var(--primary-color);
+}
+
+.empty-state{
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    font-weight: 500;
+    margin-top: 50px;   
 }

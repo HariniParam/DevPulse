@@ -81,4 +81,9 @@
       </label>
     </div>
   </div>
-  
+  <app-popup
+  *ngIf="showPopup"
+  [message]="popupMessage"
+  [type]="popupType"
+  (close)="showPopup = false"
+></app-popup>

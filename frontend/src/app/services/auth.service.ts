@@ -43,7 +43,6 @@ export class AuthService {
         try {
           this._user = JSON.parse(storedUser);
         } catch (e) {
-          console.error('Failed to parse auth_user from localStorage', e);
         }
       }
     }

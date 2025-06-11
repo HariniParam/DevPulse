@@ -1,11 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
+import { ResumeAnalysisService } from '../../services/resume-analysis.service';
+
+// Interface for internal use - flexible to handle API response variations
+interface AnalysisProgress {
+  overallScore: number;
+  analyses: { name: string; score: number; displayName: string }[];
+  summary: string;
+  recommendations: string;
+  metadata: any;
+}
 
 @Component({
   selector: 'app-resume',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './resume.component.html',
   styleUrl: './resume.component.scss'
 })
@@ -15,25 +26,18 @@ export class ResumeComponent {
   selectedPDF?: File;
   pdfURL?: SafeResourceUrl;
 
-  constructor(private sanitizer: DomSanitizer) { }
-
-  analysisProgress = {
-    overallScore: 63, 
-    analyses: [
-      { name: 'Skills Match', score: 85 },
-      { name: 'Experience Match', score: 70 },
-      { name: 'Education Level', score: 90 },
-      { name: 'Grammar Check', score: 65 },
-      { name: 'Keyword Density', score: 80 }
-    ],
-    summary: `This resume showcases strong educational background and decent keyword density. 
-    Skills and experience can be better aligned with the job role.This resume showcases strong 
-    educational background and decent keyword density. Skills and experience can be better aligned 
-    with the job role.This resume showcases strong educational background and decent keyword density.
-    Skills and experience can be better aligned with the job role.This resume showcases strong
-    educational background and decent keyword density. Skills and experience can be better aligned with the job role.`
+  analysisProgress: AnalysisProgress = {
+    overallScore: 0,
+    analyses: [],
+    summary: '',
+    recommendations: '',
+    metadata: null
   };
-  
+
+  constructor(
+    private sanitizer: DomSanitizer,
+    private resumeService: ResumeAnalysisService
+  ) { }
 
   onPanelClick(): void {
     this.fileInput.nativeElement.click();
@@ -42,13 +46,60 @@ export class ResumeComponent {
   clearPDF() {
     this.selectedPDF = undefined;
     this.pdfURL = undefined;
+    this.analysisProgress = {
+      overallScore: 0,
+      analyses: [],
+      summary: '',
+      recommendations: '',
+      metadata: null
+    };
+  }
+
+  // Helper function to convert snake_case to display names
+  private formatDisplayName(key: string): string {
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   analyzeResume() {
-    // Add your resume analysis logic here
-    console.log('Resume submitted for analysis:', this.selectedPDF);
+    if (!this.selectedPDF) {
+      alert("No file selected");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', this.selectedPDF);
+
+    this.resumeService.analyzeResume(formData).subscribe({
+      next: (res: any) => {
+        console.log('Analysis result:', res);
+
+        // Handle subscores safely
+        let subscoreEntries: { name: string; score: number; displayName: string }[] = [];
+        if (res.subscores) {
+          subscoreEntries = Object.entries(res.subscores).map(([key, score]) => ({
+            name: key,
+            score: score as number,
+            displayName: this.formatDisplayName(key)
+          }));
+        }
+
+        this.analysisProgress = {
+          overallScore: res.overall_score || 0,
+          analyses: subscoreEntries,
+          summary: res.summary || '',
+          recommendations: res.recommendations || '',
+          metadata: res.metadata || null
+        };
+      },
+      error: (err: any) => {
+        console.error('Resume analysis failed:', err);
+        alert('Failed to analyze resume. Please try again.');
+      }
+    });
   }
-  
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -61,7 +112,6 @@ export class ResumeComponent {
         this.pdfURL = this.sanitizer.bypassSecurityTrustResourceUrl(
           URL.createObjectURL(file) + '#toolbar=0&navpanes=0&scrollbar=0'
         );
-        
       } else {
         alert('Please upload a valid PDF file.');
       }

@@ -5,11 +5,12 @@ import { UserService } from '../../services/user.service';
 import { ThemeService } from '../../auth/shared/helpers/theme.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { PopupComponent } from "../../shared/popup/popup.component";
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PopupComponent],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
@@ -20,6 +21,9 @@ export class SettingsComponent implements OnInit {
   defaultImage = 'assets/images/default-profile.png';
   previewUrl: string | null = null;
   selectedFile: File | null = null;
+  popupMessage: string = '';
+  popupType: 'success' | 'error' = 'success';
+  showPopup: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -41,6 +45,17 @@ export class SettingsComponent implements OnInit {
     if (user && user.profilepic) {
       this.previewUrl = `http://localhost:8000/media/${user.profilepic}`;
     }
+  }
+
+
+  showAlert(message: string, type: 'success' | 'error') {
+    this.popupMessage = message;
+    this.popupType = type;
+    this.showPopup = true;
+
+    setTimeout(() => {
+      this.showPopup = false;
+    }, 1500);
   }
 
   toggleOldPasswordVisibility() {
@@ -69,9 +84,9 @@ export class SettingsComponent implements OnInit {
 
     const userId = this.authService.user?._id;
     if (!userId) {
-      alert('User not logged in');
+      this.showAlert('User not logged in', 'error');
       return;
-    }
+    }    
 
     const formData = new FormData();
     formData.append('user_id', userId);
@@ -96,44 +111,43 @@ export class SettingsComponent implements OnInit {
 
     this.userService.updateUser(formData).subscribe({
       next: (response: any) => {
-        console.log('Update response:', response);
         const updatedUser: User = response.user;
-
         if (!updatedUser) {
-          console.error('No user data returned in response');
+          this.showAlert('No user data returned', 'error');
           return;
         }
-
         this.authService.setUser(updatedUser);
         this.updateFormWithUser(updatedUser);
-        this.router.navigate(['/dashboard/home']);
+        this.showAlert('Profile updated successfully!', 'success');
+        setTimeout(() => {
+          this.router.navigate(['/dashboard/home']);
+        }, 1500);
       },
       error: (err) => {
-        console.error('Update failed', err);
+        this.showAlert('Update failed. Please try again.', 'error');
       }
-    });
+    });    
   }
 
   onDeleteAccount(): void {
-    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      return;
-    }
 
     const userId = this.authService.user?._id;
     if (!userId) {
-      alert('User not logged in');
+      this.showAlert('User not logged in', 'error');
       return;
-    }
+    }    
 
     this.userService.deleteUser(userId).subscribe({
       next: (res: any) => {
-        alert('Account deleted successfully');
-        this.authService.logout(); // Remove user data from memory/localStorage
-        this.router.navigate(['/signin']);
+        this.showAlert('Account deleted successfully', 'success');
+        setTimeout(() => {
+          this.authService.logout();
+          this.router.navigate(['/signin']);
+        }, 1500);
+
       },
       error: (err) => {
-        console.error('Delete failed:', err);
-        alert('Error deleting account');
+        this.showAlert('Error deleting account', 'error');
       }
     });
   }
