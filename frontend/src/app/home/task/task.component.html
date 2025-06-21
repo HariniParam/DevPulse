@@ -1,0 +1,103 @@
+<div class="task-container">
+  <div class="left-container">
+    <div class="left-header">
+      <div class="search-container">
+        <img src="../../../assets/icons/search-02.svg" alt="Search Icon"/>
+        <input type="text" class="search-input" placeholder="Search...">
+      </div>
+      <div class="add-container" (click)="openAddTaskPopup()">
+        <div class="add-symbol">+</div>
+        <p>Add New Task</p>
+      </div>
+    </div>
+    <div class="status-panel">
+      <div class="status-div total-task">
+        <img src="../../../assets/icons/total-task.svg" class="status-icon" alt="Total Tasks Icon"/>
+        <div class="status-content">
+          <span class="status-number">{{ totalTasks }}</span>
+          <p class="status-text">Total Tasks</p>
+        </div>
+      </div>
+      <div class="status-div on-progress">
+        <img src="../../../assets/icons/on-progress.svg" class="status-icon" alt="On Progress Icon"/>
+        <div class="status-content">
+          <span class="status-number">{{ onProgress }}</span>
+          <p class="status-text">On Progress</p>
+        </div>
+      </div>
+      <div class="status-div completed">
+        <img src="../../../assets/icons/checked.svg" class="status-icon" alt="Completed Icon"/>
+        <div class="status-content">
+          <span class="status-number">{{ completed }}</span>
+          <p class="status-text">Completed</p>
+        </div>
+      </div>
+    </div>
+    <div class="tasklist-container">
+      <div class="task-box" *ngFor="let task of tasks" (click)="openViewPopup(task, $event)" tabindex="0">
+        <div class="task-header">
+          <h3 class="task-title">{{ task.title }}</h3>
+          <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task" (click)="openConfirmPopup(task, $event)"/>
+        </div>
+        <div class="task-content">
+          <p>{{ task.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="right-container">
+    <div class="calender"></div>
+    <div class="today-tasklist"></div>
+  </div>
+</div>
+
+<!-- View Task Popup -->
+<div class="popup-overlay" *ngIf="showViewPopup" (click)="closeViewPopup($event)">
+  <div class="popup-task-box">
+    <div class="task-header">
+      <h3 class="task-title">{{ selectedTask?.title }}</h3>
+      <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task" (click)="openConfirmPopup(selectedTask!, $event)"/>
+    </div>
+    <div class="task-content">
+      <p>{{ selectedTask?.description }}</p>
+      <p *ngIf="selectedTask?.scheduled_date">Scheduled: {{ selectedTask?.scheduled_date | date }}</p>
+    </div>
+    <button class="close-button" (click)="closeViewPopup()" aria-label="Close popup">Close</button>
+  </div>
+</div>
+
+<!-- Add Task Popup -->
+<div class="add-task-overlay" *ngIf="showAddPopup" (click)="closeAddPopup($event)">
+  <div class="add-task-popup">
+    <form [formGroup]="taskForm">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input id="title" formControlName="title" type="text" placeholder="Enter task title">
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" placeholder="Enter task description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="schedule_date">Schedule</label>
+        <input id="scheduled_date" formControlName="scheduled_date" type="date">
+      </div>
+      <div class="button-group">
+        <button type="button" class="cancel-button" (click)="closeAddPopup()" aria-label="Cancel">Cancel</button>
+        <button type="button" class="save-button" (click)="saveTask()" [disabled]="taskForm.invalid" aria-label="Save task">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirmation Popup -->
+<div class="confirm-overlay" *ngIf="showConfirmPopup" (click)="closeConfirmPopup($event)">
+  <div class="confirm-popup">
+    <h3 class="confirm-title">Confirm Deletion</h3>
+    <p class="confirm-message">Are you sure you want to delete the task "{{ taskToDelete?.title }}"?</p>
+    <div class="button-group">
+      <button type="button" class="cancel-button" (click)="closeConfirmPopup()" aria-label="Cancel">Cancel</button>
+      <button type="button" class="delete-button" (click)="confirmDelete()" aria-label="Confirm Delete">Delete</button>
+    </div>
+  </div>
+</div>

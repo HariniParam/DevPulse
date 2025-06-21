@@ -137,7 +137,7 @@ export class SettingsComponent implements OnInit {
       return;
     }    
 
-    this.userService.deleteUser(userId).subscribe({
+    this.userService.deleteUser().subscribe({
       next: (res: any) => {
         this.showAlert('Account deleted successfully', 'success');
         setTimeout(() => {

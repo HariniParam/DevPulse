@@ -5,6 +5,7 @@ import { DashboardComponent } from './home/dashboard/dashboard.component';
 import { SettingsComponent } from './home/settings/settings.component';
 import { HomepageComponent } from './home/homepage/homepage.component';
 import { ResumeComponent } from './home/resume/resume.component';
+import { TaskComponent } from './home/task/task.component';
 
 export const routes: Routes = [
   { path: 'signin', component: SigninComponent },
@@ -17,6 +18,7 @@ export const routes: Routes = [
       { path: 'settings', component: SettingsComponent },
       { path: 'home', component: HomepageComponent },
       { path: 'resume', component: ResumeComponent},
+      { path: 'tasklist', component: TaskComponent}
     ]
   }
 ];

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { User,AuthService } from './auth.service';  // adjust path accordingly
 import { tap } from 'rxjs/operators';
 
@@ -11,8 +11,21 @@ export class UserService {
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
+  private getAuthHeaders(): { headers: HttpHeaders } {
+    const token = localStorage.getItem('auth_token') || '';
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
+
   updateUser(formData: FormData) {
-    return this.http.post<{ user: User }>(`${this.baseUrl}/update/`, formData).pipe(
+    return this.http.post<{ user: User }>(
+      `${this.baseUrl}/update/`,
+      formData,
+      this.getAuthHeaders()
+    ).pipe(
       tap(response => {
         if (response.user) {
           this.authService.setUser(response.user);
@@ -21,9 +34,14 @@ export class UserService {
     );
   }
 
-  deleteUser(userId: string) {
-    return this.http.post(`${this.baseUrl}/delete_user/`, { user_id: userId });
-  }
+  deleteUser() {
+    // no need to pass userId; backend takes user from token
+    return this.http.post(
+      `${this.baseUrl}/delete_user/`,
+      {}, // no body needed
+      this.getAuthHeaders()
+    );
+  }    
 
   
 }
