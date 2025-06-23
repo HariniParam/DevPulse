@@ -1,0 +1,394 @@
+.assesment-container{
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    width: 100%;    
+    .assesment-left-panel{
+        width: 73%;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 1rem 0 0 2rem;
+        .history-panel{
+            height: 40%;
+            border-radius: 1rem;
+            background-color: var(--secondary-card-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 0 2.5rem;
+            .history-header{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                height: 20%;
+                margin-top: 0.5rem;
+                .history-title{
+                    color: #fff;
+                    font-size: 2rem;
+                }
+                .view-all{
+                    background-color: var(--bg-secondary-color);
+                    padding: 0.3rem 0.5rem;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 0.125rem solid var(--primary-color);
+                    font-weight: bold;
+                    color: var(--primary-color);
+                    cursor: pointer;
+                    .eye-icon {
+                        position: relative;
+                        cursor: pointer;
+                        user-select: none;
+                
+                        img {
+                            width: 20px;
+                            height: 20px;
+                        }               
+                    }
+                }
+            }
+            .history-card-panel{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                height: 80%;
+                width: 100%;
+                gap: 1rem;
+                .history-test-card {
+                    background-color: #d1c1ba;
+                    border-radius: 12px;
+                    padding: 0.5rem;
+                    color: #2e1f1b;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    width: 30%;
+                    height: 80%;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            
+                    .test-card-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+            
+                        img {
+                            width: 20px;
+                            height: 20px;
+                            cursor: pointer;
+                        }
+            
+                        .test-card-date {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+            
+                            img {
+                                width: 18px;
+                                height: 18px;
+                            }
+            
+                            p {
+                                font-size: 14px;
+                                margin: 0;
+                            }
+                        }
+                    }
+            
+                    .test-card-body {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        border-radius: 0.5rem;
+                        background-color: var(--bg-color);
+                        width: 90%;
+                        padding: 0.75rem 0.75rem ;
+                        border: 0.125rem solid var(--primary-color);
+                        .test-info {
+                            h2 {
+                                margin: 0 0 4px;
+                                font-size: 1.2rem;
+                                font-weight: bold;
+                            }
+            
+                            p {
+                                margin: 2px 0;
+                                font-size: 0.75rem;
+                                font-weight: 600;
+                            }
+                        }
+            
+                        .test-progress {
+                            img {
+                                width: 60px;
+                                height: 60px;
+                            }
+                        }
+                    }
+            
+                    .test-card-footer {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+            
+                        .test-score {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+            
+                            img {
+                                width: 20px;
+                                height: 20px;
+                            }
+            
+                            p {
+                                margin: 0;
+                                font-weight: 600;
+                                font-size: 16px;
+                            }
+                        }
+            
+                        .test-retake {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            background-color: #3a2b29;
+                            color: white;
+                            padding: 6px 12px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            transition: background-color 0.2s ease;
+            
+                            &:hover {
+                                background-color: #2b1d1a;
+                            }
+            
+                            img {
+                                width: 14px;
+                                height: 14px;
+                                filter: brightness(0) invert(1);
+                            }
+            
+                            div {
+                                p {
+                                    margin: 0;
+                                    font-size: 10px;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .upload-pdf-main-panel{
+            background-color: var(--bg-secondary-color);
+            width: 100%;
+            height: 60%;
+            border-radius: 1rem;
+            border: 0.25rem solid var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            .uploaded-pdf-preview {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                height: 100%;
+                width: 100%;
+                overflow-y: scroll;
+                scrollbar-width: none;
+                padding: 0 1rem;
+        
+                .pdf-file {
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+                    margin-bottom: 0.5rem;
+                }
+        
+                .close-button {
+                    position: relative;
+                    background-color: var(--primary-color);
+                    color: var(--bg-color);
+                    border: none;
+                    border-radius: 50%;
+                    font-size: 1.5rem;
+                    width: 2.5rem;
+                    height: 2.5rem;
+                    cursor: pointer;
+                    align-self: center;
+                    justify-self: center;
+                    padding: 0 0.1rem 0.2rem 0;
+                }
+        
+                .confirm-button {
+                    margin-top: 0.5rem;
+                    background-color: var(--primary-color);
+                    color: white;
+                    padding: 0.6rem 1.2rem;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 1rem;
+                }   
+            }
+            .upload-pdf-inner-panel {
+                width: 26rem;
+                height: 17rem;
+                border: 0.25rem solid var(--primary-color);
+                border-radius: 1rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+        
+                .upload-pdf-inner-dotted-panel {
+                    width: 20rem;
+                    height: 13rem;
+                    border: 0.25rem dotted var(--primary-color);
+                    border-radius: 0.75rem;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    color: var(--primary-color);
+        
+                    .upload-icon {
+                        fill: var(--primary-color);
+                        width: 7rem;
+                        height: 7rem;
+                    }
+                }
+            }
+        }
+        
+    }
+    .assesment-right-panel{
+        width: 27%;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 1rem 0 0 2rem;
+        .news-info {
+            width: 100%;
+            height: 50%;
+            background-color: var(--bg-secondary-color);
+            border-radius: 1rem 0 0 1rem;
+            .news-title {
+                margin-bottom: 12px;
+                font-size: 20px;
+                font-weight: 600;
+                padding: 12px 0 4px 12px;
+            }
+
+            .news-list {
+                max-height: 84%;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 0 12px;
+                border-radius: 1rem;
+                scrollbar-width: none;
+            }
+
+            .news-card {
+                background: var(--primary-color);
+                padding: 12px;
+                border-radius: 10px;
+                box-shadow: 0 2px 6px rgba(191, 167, 146, 0.3);
+                transition: transform 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    background-color: var(--secondary-text-color);
+                }
+
+                .news-card-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+
+                    img {
+                        width: 24px;
+                        height: 24px;
+                        object-fit: contain;
+                    }
+
+                    .contest-site {
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: #fff;
+                    }
+                }
+
+                .news-card-body {
+                    .contest-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #4aa3df;
+                        text-decoration: none;
+
+                        &:hover {
+                            text-decoration: underline;
+                        }
+                    }
+
+                    .contest-time {
+                        font-size: 13px;
+                        color: #fff;
+                        margin-top: 2px;
+                    }
+                }
+            }
+        }
+        .bookmark{
+            width: 100%;
+            height: 50%;
+            background-color: var(--bg-secondary-color);
+            border-radius: 1rem 0 0 1rem;
+
+        }
+    }
+}
+
+
+.pagination-buttons{
+    width: 0;
+    position: relative;
+    .right-button {
+            bottom: 0.5rem;
+            img {
+                transform: rotate(180deg);
+            }
+        }
+    
+        .left-button {
+            right: 2rem;
+            bottom: 1rem;
+        }
+    
+        .left-button,
+        .right-button {
+            position: relative;
+            cursor: pointer;
+    
+            img {
+                height: 32px;
+                width: 32px;
+            }
+        }
+}

@@ -1,0 +1,56 @@
+<div class="test-container">
+    <header class="test-header">
+      <div class="question-nav">
+        <button *ngFor="let q of questions"
+                (click)="selectQuestion(q.id)"
+                [class.active]="q.id === selectedQuestionId">
+          {{ q.id }}
+        </button>
+      </div>
+    </header>
+  
+    <div class="test-body">
+      <aside class="left-panel">
+        <ng-container *ngIf="selectedQuestion">
+          <p>{{ selectedQuestionId }}. {{ selectedQuestion.text }}</p>
+        </ng-container>
+      </aside>
+  
+      <main class="right-panel">
+        <ng-container *ngIf="selectedQuestion">
+          <!-- MCQ -->
+          <div *ngIf="selectedQuestion.type === 'mcq'" class="mcq-block">
+            <label *ngFor="let option of selectedQuestion.options; let i = index">
+              <input type="radio"
+                     [name]="'q' + selectedQuestion.id"
+                     [(ngModel)]="answers[selectedQuestion.id]"
+                     [value]="i" />
+              {{ option }}
+            </label>
+          </div>
+  
+          <!-- Coding -->
+          <div *ngIf="selectedQuestion.type === 'coding'" class="editor-wrapper">
+            <div class="language-selector">
+              <label for="language">Language: </label>
+              <select id="language" [(ngModel)]="selectedLanguage" (ngModelChange)="onLanguageChange($event)">
+                <option *ngFor="let lang of languages" [value]="lang">{{ lang | titlecase }}</option>
+              </select>
+            </div>
+            <div #editor class="editor"></div>
+          </div>
+        </ng-container>
+      </main>
+    </div>
+  
+    <footer class="test-footer">
+      <div class="footer-left">
+        Total Questions: {{ questions.length }} |
+        Time Left: {{ timeLeft }}
+      </div>
+      <div>
+        <button *ngIf="selectedQuestionId < questions.length" (click)="nextQuestion()" class="next-btn">Next</button>
+        <button *ngIf="selectedQuestionId === questions.length" (click)="submit()" class="submit-btn">Submit Test</button>
+      </div>
+    </footer>
+  </div>
