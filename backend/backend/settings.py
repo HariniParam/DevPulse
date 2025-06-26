@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'resume',
     'tasks',
     'contests',
+    'assessment_app',
 ]
 
 # REST_FRAMEWORK = {

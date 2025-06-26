@@ -38,6 +38,21 @@
               </select>
             </div>
             <div #editor class="editor"></div>
+            <button (click)="runCodeTest()" class="run-btn">Run Test</button>
+            <div *ngIf="testResults.length">
+              <h4>Test Results:</h4>
+              <ul>
+                <li *ngFor="let r of testResults">
+                  Input: {{ r.input }} |
+                  Expected: {{ r.expectedOutput }} |
+                  Got: {{ r.actualOutput || r.error }} |
+                  <span [style.color]="r.passed ? 'limegreen' : 'red'">
+                    {{ r.passed ? 'Pass' : 'Fail' }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+            
           </div>
         </ng-container>
       </main>

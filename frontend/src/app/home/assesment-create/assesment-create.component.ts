@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, PLATFORM_ID, Inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  PLATFORM_ID,
+  Inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -17,6 +25,7 @@ interface Question {
   correctAnswer?: number;
   code?: string;
   language?: string;
+  testCases?: { input: string; expectedOutput: string }[];
 }
 
 @Component({
@@ -33,20 +42,22 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
   languages = ['javascript', 'python', 'c', 'cpp', 'java'];
   selectedLanguage: string = 'javascript';
   questions: Question[] = [];
+  testResults: any[] = [];
   selectedQuestionId: number = 0;
   selectedQuestion: Question | null = null;
   answers: { [key: number]: number | string } = {};
   selectedPDF: File | null = null;
   pdfURL: SafeResourceUrl | null = null;
 
-  // Timer properties
   timeLeft: string = '45:00';
   private timerInterval: any;
   private totalSeconds: number = 45 * 60;
 
-  // Tab switch tracking
   private tabSwitchCount: number = 0;
   private maxTabSwitches: number = 5;
+
+  // Store the listener so we can remove it properly
+  private visibilityChangeHandler = this.handleVisibilityChange.bind(this);
 
   constructor(
     private router: Router,
@@ -76,7 +87,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
       clearInterval(this.timerInterval);
     }
     if (isPlatformBrowser(this.platformId)) {
-      document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+      document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
     }
   }
 
@@ -137,7 +148,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
 
   private setupTabSwitchDetection() {
     if (isPlatformBrowser(this.platformId)) {
-      document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+      document.addEventListener('visibilitychange', this.visibilityChangeHandler);
     }
   }
 
@@ -147,7 +158,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
       if (this.tabSwitchCount > this.maxTabSwitches) {
         this.submit('Test ended due to excessive tab switches!');
       } else {
-        alert(`Don't change tab! Tab switches remaining: ${this.maxTabSwitches - this.tabSwitchCount}`);
+        alert(`Don't change tab! Tab switches remaining: ${this.maxTabSwitches - this.tabSwitchCount + 1}`);
       }
     }
   }
@@ -228,14 +239,44 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
     if (this.editor && this.selectedQuestion?.type === 'coding') {
       this.answers[this.selectedQuestionId] = this.editor.getValue();
     }
+
     console.log('Answers:', this.answers);
     alert(message);
+
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
     }
+
     if (isPlatformBrowser(this.platformId)) {
-      document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+      document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
     }
+
     this.router.navigate(['/dashboard/assesment']);
+  }
+
+  runCodeTest() {
+    if (!this.selectedQuestion || this.selectedQuestion.type !== 'coding') return;
+
+    const code = this.getCode();
+    const testCases = (this.selectedQuestion as any).testCases || [];
+
+    if (!code || !testCases.length) {
+      alert('No code or test cases found!');
+      return;
+    }
+
+    this.http.post<any>('http://localhost:8000/assessment/run-code/', {
+      code,
+      language: this.selectedLanguage,
+      testCases
+    }).subscribe({
+      next: (res) => {
+        this.testResults = res.results;
+      },
+      error: (err) => {
+        alert('Failed to run code');
+        console.error(err);
+      }
+    });
   }
 }

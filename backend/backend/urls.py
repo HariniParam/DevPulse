@@ -25,6 +25,7 @@ urlpatterns = [
     path('resume/', include('resume.urls')),
     path('tasks/', include('tasks.urls')),
     path('contests/', include('contests.urls')),
+    path('assessment/', include('assessment_app.urls')),
 ]
 
 # Serve media files during development
