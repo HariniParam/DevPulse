@@ -4,7 +4,7 @@ DevPulse is a full-stack web application that helps users manage tasks, take AI-
 
 ---
 
-## 🧠 Key Features
+## Key Features
 
 - **Task Management**: Create, schedule, and track tasks with status labels (Pending/Completed).
 - **PDF-Based Assessment Generation**: Upload PDFs and auto-generate MCQs and QA questions using AI (LLMs).
@@ -16,7 +16,7 @@ DevPulse is a full-stack web application that helps users manage tasks, take AI-
 
 ---
 
-## 🧑‍💻 Tech Stack
+## Tech Stack
 
 | Layer       | Technology               |
 |-------------|---------------------------|
@@ -27,7 +27,7 @@ DevPulse is a full-stack web application that helps users manage tasks, take AI-
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup Instructions
 
 ### 🔹 Prerequisites
 
@@ -89,7 +89,7 @@ DevPulse is a full-stack web application that helps users manage tasks, take AI-
 
 ---
 
-## 🤖 AI Integration
+## AI Integration
 
 - **PDF Parsing & MCQ Generation**: NLP pipeline powered by Groq models.
 - **Performance Nudges**: Triggers reminders and insights if user productivity drops.
@@ -97,14 +97,8 @@ DevPulse is a full-stack web application that helps users manage tasks, take AI-
 
 ---
 
-## 🧑‍🔧 Contributing
+## Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## 📃 License
-
-This project is licensed under the MIT License.
 
 ---
