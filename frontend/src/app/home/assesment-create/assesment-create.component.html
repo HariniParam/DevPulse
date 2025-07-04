@@ -37,21 +37,7 @@
                 <option *ngFor="let lang of languages" [value]="lang">{{ lang | titlecase }}</option>
               </select>
             </div>
-            <div #editor class="editor"></div>
-            <button (click)="runCodeTest()" class="run-btn">Run Test</button>
-            <div *ngIf="testResults.length">
-              <h4>Test Results:</h4>
-              <ul>
-                <li *ngFor="let r of testResults">
-                  Input: {{ r.input }} |
-                  Expected: {{ r.expectedOutput }} |
-                  Got: {{ r.actualOutput || r.error }} |
-                  <span [style.color]="r.passed ? 'limegreen' : 'red'">
-                    {{ r.passed ? 'Pass' : 'Fail' }}
-                  </span>
-                </li>
-              </ul>
-            </div>
+            <div #editor class="editor"></div>           
             
           </div>
         </ng-container>
@@ -65,7 +51,27 @@
       </div>
       <div>
         <button *ngIf="selectedQuestionId < questions.length" (click)="nextQuestion()" class="next-btn">Next</button>
-        <button *ngIf="selectedQuestionId === questions.length" (click)="submit()" class="submit-btn">Submit Test</button>
+        <button *ngIf="selectedQuestionId === questions.length" (click)="openSubmitPopup()" class="submit-btn">Submit Test</button>
       </div>
     </footer>
   </div>
+  
+
+  <div *ngIf="showSubmitPopup" class="submit-popup">
+    <div class="submit-popup-content">
+      <div>
+        <h3>Confirm Submission</h3>
+        <hr />
+      </div>
+      <div>
+        <p>MCQs Answered: {{ mcqCount }}</p>
+        <p>Coding Questions Answered: {{ codingCount }}</p>
+        <p>Total Time Spent: {{ testTimeElapsed }} seconds</p>
+      </div>
+      <div class="submit-popup-buttons">
+        <button (click)="cancelSubmitPopup()">Cancel</button>
+        <button class="submit-btn" (click)="submit()">Submit Test</button>
+      </div>
+    </div>
+  </div>
+  

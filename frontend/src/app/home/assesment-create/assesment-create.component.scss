@@ -124,3 +124,71 @@
         }
     } 
 }
+
+
+.submit-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    .submit-popup-content {
+        background-color: var(--bg-color);
+        color: var(--secondary-card-color);
+        padding: 2rem;
+        border-radius: 8px;
+        width: 20rem;
+        height: 20rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center; 
+        hr{
+            border: none;
+            border-top: 2px solid var(--primary-color);
+            margin: 1rem 0 0 0;
+            width: 100%;
+        }
+        h3 {
+            margin-top: 0;
+            font-size: 2rem;
+            color: var(--primary-color);       
+        } 
+        p{
+            margin: 0.5rem 0;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            font-weight: bold;
+        }
+        .submit-popup-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;   
+            button{
+                background-color: #444;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                margin-left: 0.5rem;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }  
+            button:hover {
+                background-color: #666;           
+            } 
+            button.submit-btn {
+                background-color: #28a745;           
+            } 
+            button.submit-btn:hover {
+                background-color: #218838;           
+            }
+        }
+    }
+}

@@ -1,36 +1,33 @@
-import sys
-from django.http import JsonResponse
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import PDFUploadSerializer
-from backend.mongo_client import questions_collection
-from .groq_client import generate_questions_with_groq
-from transformers import pipeline
-from keybert import KeyBERT
-import fitz  # PyMuPDF
+import datetime
+import json
+import logging
+import os
 import re
 from bson import ObjectId
-import logging
-import subprocess
+from dotenv import load_dotenv
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import tempfile
-import os
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.parsers import JSONParser
+from transformers import pipeline
+from keybert import KeyBERT
+from groq import Groq
+import fitz  # PyMuPDF
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
+from .serializers import PDFUploadSerializer
+from .groq_client import generate_questions_with_groq,evaluate_code_questions
+from backend.mongo_client import test_attempts_collection, questions_collection
+
+# Setup
+load_dotenv()
 logger = logging.getLogger(__name__)
-
-# Initialize summarizer and keyword extractor
+logging.basicConfig(level=logging.DEBUG)
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 kw_model = KeyBERT()
 
-# Generic computer science keywords for language detection and fallback
 GENERIC_CS_KEYWORDS = [
     "data structure", "linked list", "stack", "queue", "tree", "graph",
     "algorithm", "sorting", "searching", "recursion", "dynamic programming",
@@ -40,28 +37,21 @@ GENERIC_CS_KEYWORDS = [
 ]
 
 def clean_text(text: str) -> str:
-    """
-    Clean text by removing common PDF metadata, noise, and formatting artifacts.
-    """
     patterns = [
-        r'P\.T\.O\s*\d*',  # Page Turn Over
-        r'\b(Prepared by|Author|Dr\.|Prof\.|Department of|University of|College of|Institute of)\b.*?\n',  # Author/institution
-        r'Page \d+ of \d+',  # Page numbers
-        r'\b(Syllabus|Course Code|Module [IVX]+)\b.*?\n',  # Syllabus headers
-        r'\n{2,}',  # Multiple newlines
-        r'\s+',  # Excessive whitespace
+        r'P\.T\.O\s*\d*',
+        r'\b(Prepared by|Author|Dr\.|Prof\.|Department of|University of|College of|Institute of)\b.*?\n',
+        r'Page \d+ of \d+',
+        r'\b(Syllabus|Course Code|Module [IVX]+)\b.*?\n',
+        r'\n{2,}',
+        r'\s+',
     ]
     for pattern in patterns:
         text = re.sub(pattern, ' ', text, flags=re.IGNORECASE)
-
-    text = re.sub(r'[\?\!\.]{2,}', '.', text)  # Multiple punctuation
-    text = re.sub(r'\b(\w+)(?:\s+\1){2,}\b', r'\1', text, flags=re.IGNORECASE)  # Repeated words
+    text = re.sub(r'[\?\!\.]{2,}', '.', text)
+    text = re.sub(r'\b(\w+)(?:\s+\1){2,}\b', r'\1', text, flags=re.IGNORECASE)
     return text.strip()
 
 def extract_keywords(text: str, top_n: int = 10) -> list:
-    """
-    Extract relevant keywords using KeyBERT, falling back to generic CS keywords.
-    """
     try:
         keywords = kw_model.extract_keywords(
             text,
@@ -73,199 +63,234 @@ def extract_keywords(text: str, top_n: int = 10) -> list:
         )
         extracted = [kw[0] for kw in keywords]
         cs_keywords = [kw for kw in extracted if any(gkw in kw.lower() for gkw in GENERIC_CS_KEYWORDS)]
-        logger.debug(f"Extracted keywords: {cs_keywords or extracted[:top_n]}")
         return cs_keywords or extracted[:top_n] or GENERIC_CS_KEYWORDS[:top_n]
     except Exception as e:
-        logger.error(f"Error extracting keywords: {str(e)}")
+        logger.error(f"Keyword extraction error: {e}")
         return GENERIC_CS_KEYWORDS[:top_n]
 
 def detect_language(text: str) -> str:
-    """
-    Detect preferred programming language based on text content.
-    """
-    text_lower = text.lower()
+    text = text.lower()
     for lang in ["python", "cpp", "java", "javascript"]:
-        if lang in text_lower or (lang == "cpp" and "c++" in text_lower):
-            logger.debug(f"Detected language: {lang}")
+        if lang in text or (lang == "cpp" and "c++" in text):
             return lang
-    logger.debug("Defaulting to Python")
     return "python"
 
 def summarize_text(text: str, max_words: int = 2000) -> str:
-    """
-    Summarize text to approximately 2000 words, enriched with keywords.
-    """
     try:
-        # Split text into chunks for summarization
         chunk_size = 1000
         chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-        summaries = []
-        for chunk in chunks:
-            summary = summarizer(
-                chunk,
-                max_length=200,
-                min_length=50,
-                do_sample=False
-            )[0]['summary_text']
-            summaries.append(clean_text(summary))
-
-        # Combine summaries
-        combined_summary = " ".join(summaries)
-        # Extract keywords to enrich summary
-        keywords = extract_keywords(combined_summary, top_n=10)
-        # Ensure summary is within word limit
-        words = combined_summary.split()
-        if len(words) > max_words:
-            combined_summary = " ".join(words[:max_words])
-        # Append keywords for context
-        combined_summary += f" Keywords: {', '.join(keywords)}."
-        logger.debug(f"Summary length: {len(combined_summary.split())} words")
-        return clean_text(combined_summary)
+        summaries = [clean_text(summarizer(chunk, max_length=200, min_length=50, do_sample=False)[0]['summary_text']) for chunk in chunks]
+        combined = " ".join(summaries)
+        combined = " ".join(combined.split()[:max_words])
+        keywords = extract_keywords(combined, top_n=10)
+        return f"{combined} Keywords: {', '.join(keywords)}."
     except Exception as e:
-        logger.error(f"Error summarizing text: {str(e)}")
-        return clean_text(text[:max_words * 5])
+        logger.error(f"Summarization error: {e}")
+        return text[:max_words * 5]
 
+
+@method_decorator(csrf_exempt, name='dispatch')
 class PDFQuestionUploadView(APIView):
     def post(self, request):
         serializer = PDFUploadSerializer(data=request.data)
         if not serializer.is_valid():
-            logger.error("Invalid serializer data")
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=400)
 
         pdf_file = serializer.validated_data['pdf_file']
         try:
-            # Extract and clean text
-            raw_text = self.extract_text_from_pdf(pdf_file)
-            if not raw_text.strip():
-                logger.error("No extractable text from PDF")
-                return Response({'error': 'No extractable text from PDF'}, status=status.HTTP_400_BAD_REQUEST)
+            text = self.extract_text_from_pdf(pdf_file)
+            if not text.strip():
+                return Response({'error': 'No extractable text'}, status=400)
 
-            cleaned_text = clean_text(raw_text)
-            logger.debug(f"Cleaned text length: {len(cleaned_text)} characters")
+            cleaned = clean_text(text)
+            summary = summarize_text(cleaned)
+            language = detect_language(summary)
+            questions = generate_questions_with_groq(summary, language)
 
-            # Summarize text to ~2000 words
-            summarized_text = summarize_text(cleaned_text)
-            # Detect programming language
-            language = detect_language(summarized_text)
-
-            # Generate questions with a single API call
-            questions = generate_questions_with_groq(summarized_text, language)
             if not questions:
-                logger.error("No questions generated from Groq API")
-                return Response({'error': 'No questions generated from the PDF'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'No questions generated'}, status=400)
 
-            logger.debug(f"Generated {len(questions)} questions")
+            for i, q in enumerate(questions, 1):
+                q['id'] = i
+                if q['type'] == 'mcq':
+                    q['correctAnswer'] = int(q.get('correctAnswer', 0))
+                elif q['type'] == 'coding':
+                    q['language'] = language
+                    q['code'] = q.get('code', '')
 
-            # Assign sequential IDs
-            for i, question in enumerate(questions, 1):
-                question['id'] = i
-                if question['type'] == 'mcq':
-                    question['correctAnswer'] = int(question.get('correctAnswer', 0))
-                elif question['type'] == 'coding':
-                    question['language'] = language
-                    question['code'] = question.get('code', '')
-
-            # Insert into MongoDB
             inserted = questions_collection.insert_many(questions)
-            logger.debug(f"Inserted {len(questions)} questions into MongoDB")
+            for i, q in enumerate(questions):
+                q['_id'] = str(inserted.inserted_ids[i])
 
-            # Prepare response with stringified ObjectIds
-            questions_with_ids = []
-            for i, question in enumerate(questions):
-                question_copy = question.copy()
-                question_copy['_id'] = str(inserted.inserted_ids[i])
-                questions_with_ids.append(question_copy)
-
-            return Response({'questions': questions_with_ids}, status=status.HTTP_200_OK)
+            return Response({'questions': questions}, status=200)
 
         except Exception as e:
-            logger.error(f"Failed to process PDF: {str(e)}")
-            return Response({'error': f'Failed to process PDF: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("Error processing PDF")
+            return Response({'error': f'PDF processing failed: {str(e)}'}, status=500)
 
     def extract_text_from_pdf(self, pdf_file) -> str:
-        """
-        Extract text from PDF using PyMuPDF.
-        """
-        try:
-            doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-            text = "\n".join(page.get_text() for page in doc)
-            doc.close()
-            logger.debug(f"Extracted text length: {len(text)} characters")
-            return text.strip()
-        except Exception as e:
-            logger.error(f"Error extracting text from PDF: {str(e)}")
-            raise
+        doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+        text = "\n".join(page.get_text() for page in doc)
+        doc.close()
+        return text.strip()
 
 @method_decorator(csrf_exempt, name='dispatch')
-class RunCodeView(APIView):
-    def post(self, request, *args, **kwargs):
-        code = request.data.get("code")
-        language = request.data.get("language")
-        test_cases = request.data.get("testCases", [])
+class SubmitAssessmentView(APIView):
+    def post(self, request):
+        try:
+            data = request.data
+            user_id = data.get("user_id")
+            questions = data.get("questions", [])
+            total = data.get("total_questions")
+            time_taken = data.get("time_taken_seconds")
 
-        if not code or not language or not test_cases:
-            return Response({"error": "Invalid payload"}, status=status.HTTP_400_BAD_REQUEST)
+            if not user_id or not questions:
+                return Response({"error": "Missing fields"}, status=400)
 
-        results = []
+            # Separate coding and MCQ questions
+            coding_questions = [q for q in questions if q.get("type") == "coding"]
+            mcq_questions = [q for q in questions if q.get("type") == "mcq"]
 
-        def format_input(input_str):
-            try:
-                parsed = json.loads(input_str)
-                if isinstance(parsed, list):
-                    return " ".join(map(str, parsed))  # convert [1, 2, 3] -> "1 2 3"
-                elif isinstance(parsed, (int, float)):
-                    return str(parsed)
-                return input_str
-            except:
-                return input_str
+            # Evaluate all coding questions via Groq
+            evaluations = evaluate_code_questions(coding_questions)
 
-        with tempfile.NamedTemporaryFile(mode="w+", suffix=".py", delete=False) as temp_file:
-            temp_file.write(code)
-            temp_file.flush()
-            filepath = temp_file.name
+            total_marks = 0
+            updated_questions = []
 
-        for test in test_cases:
-            test_input = test.get("input", "")
-            expected = str(test.get("expectedOutput", "")).strip()
-            formatted_input = format_input(test_input)
+            for q in questions:
+                if q.get("type") == "mcq":
+                    correct = q.get("userAnswer") == q.get("correctAnswer")
+                    if correct:
+                        total_marks += 1
+                    updated_questions.append(q)
 
-            try:
-                output = subprocess.check_output(
-                    [sys.executable, filepath],
-                    input=formatted_input.encode(),
-                    stderr=subprocess.STDOUT,
-                    timeout=5
-                ).decode().strip()
+                elif q.get("type") == "coding":
+                    eval_data = evaluations.get(str(q["id"]), {})
+                    score = eval_data.get("score", 0)
+                    remarks = eval_data.get("remarks", "")
+                    suggested_code = eval_data.get("suggestedCode", "")
 
-                results.append({
-                    "input": test_input,
-                    "expectedOutput": expected,
-                    "actualOutput": output,
-                    "passed": output == expected
+                    marks_awarded = round(score / 5)
+                    total_marks += marks_awarded
+
+                    q["evaluation"] = {
+                        "score": score,
+                        "remarks": remarks,
+                        "suggestedCode": suggested_code,
+                        "marksAwarded": marks_awarded
+                    }
+
+                    updated_questions.append(q)
+
+            correct_mcqs = sum(1 for q in mcq_questions if q.get("userAnswer") == q.get("correctAnswer"))
+
+            entry = {
+                "user_id": user_id,
+                "questions": updated_questions,
+                "created_at": datetime.datetime.utcnow(),
+                "bookmark": False,
+                "total_questions": total,
+                "marks": total_marks,
+                "time_taken": time_taken,
+                "correct_answers": correct_mcqs
+            }
+
+            inserted = test_attempts_collection.insert_one(entry)
+            return Response({"message": "Submitted", "id": str(inserted.inserted_id)}, status=200)
+
+        except Exception as e:
+            logger.exception("Submission error")
+            return Response({"error": "Server error", "details": str(e)}, status=500)
+
+class AssessmentHistoryView(APIView):
+    def get(self, request):
+        user_id = request.GET.get("user_id")
+        if not user_id:
+            return Response({"error": "Missing user_id"}, status=400)
+        try:
+            tests = test_attempts_collection.find({"user_id": user_id}).sort("created_at", -1)
+
+            response = []
+            for test in tests:
+                date = test.get("created_at")
+                date_str = date.strftime("%Y-%m-%d") if isinstance(date, datetime.datetime) else ""
+
+                response.append({
+                    "id": str(test["_id"]),
+                    "title": f"Test-paper-{str(test['_id'])[-4:]}",
+                    "date": date_str,
+                    "numQuestions": test.get("total_questions", 0),
+                    "duration": round(test.get("time_taken", 0) / 60),
+                    "score": test.get("marks", 0),
+                    "bookmarked": test.get("bookmark", False)
                 })
 
-            except subprocess.TimeoutExpired:
-                results.append({
-                    "input": test_input,
-                    "expectedOutput": expected,
-                    "actualOutput": "Timeout Error",
-                    "passed": False
+            return Response({"tests": response}, status=200)
+        except Exception as e:
+            logger.exception("History fetch error")
+            return Response({"error": "Internal server error"}, status=500)
+
+
+class RetakeTestView(APIView):
+    def get(self, request, test_id):
+        try:
+            test = test_attempts_collection.find_one({"_id": ObjectId(test_id)})
+            if not test:
+                return Response({'error': 'Test not found'}, status=404)
+
+            questions = test.get('questions', [])
+            return Response({'questions': questions}, status=200)
+
+        except Exception as e:
+            logger.exception(f"Error loading retake test {test_id}: {e}")
+            return Response({'error': 'Internal server error'}, status=500)
+
+
+class BookmarkedTestsView(APIView):
+    def patch(self, request, test_id):
+        try:
+            bookmarked = request.data.get('bookmarked')
+            if bookmarked is None:
+                return Response({'error': 'Missing bookmarked field'}, status=400)
+
+            result = test_attempts_collection.update_one(
+                {'_id': ObjectId(test_id)},
+                {'$set': {'bookmark': bookmarked}}
+            )
+
+            if result.matched_count == 0:
+                return Response({'error': 'Test not found'}, status=404)
+
+            return Response({'message': 'Bookmark updated'}, status=200)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+        
+    def get(self, request):
+        user_id = request.GET.get('user_id')
+        if not user_id:
+            return Response({'error': 'Missing user_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            bookmarked_tests = test_attempts_collection.find({
+                'user_id': user_id,
+                'bookmark': True
+            })
+
+            result = []
+            for test in bookmarked_tests:
+                result.append({
+                    'id': str(test['_id']),
+                    'title': f"Test Paper-{str(test['_id'])[-4:]}",
+                    'date': test.get('created_at', '').strftime('%Y-%m-%d') if isinstance(test.get('created_at'), datetime.datetime) else '',
+                    'numQuestions': test.get('total_questions', 0),
+                    'duration': test.get('time_taken', 0),
+                    'score': test.get('marks', 0),
+                    'bookmarked': True
                 })
 
-            except subprocess.CalledProcessError as e:
-                results.append({
-                    "input": test_input,
-                    "expectedOutput": expected,
-                    "actualOutput": e.output.decode().strip(),
-                    "passed": False
-                })
+            return Response({'tests': result}, status=status.HTTP_200_OK)
 
-            except Exception as e:
-                results.append({
-                    "input": test_input,
-                    "expectedOutput": expected,
-                    "actualOutput": str(e),
-                    "passed": False
-                })
-
-        return Response({"results": results})
+        except Exception as e:
+            logger.exception("Error fetching bookmarked tests")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

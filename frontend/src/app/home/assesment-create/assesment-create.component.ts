@@ -1,22 +1,20 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
-  PLATFORM_ID,
-  Inject
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
-import { SafeResourceUrl } from '@angular/platform-browser';
+  import {
+    Component,
+    OnInit,
+    OnDestroy,
+    ViewChild,
+    ElementRef,
+    PLATFORM_ID,
+    Inject
+  } from '@angular/core';
+  import { CommonModule } from '@angular/common';
+  import { FormsModule } from '@angular/forms';
+  import { HttpClient, HttpClientModule } from '@angular/common/http';
+  import { Router } from '@angular/router';
+  import { isPlatformBrowser } from '@angular/common';
+  import { SafeResourceUrl } from '@angular/platform-browser';
 
-// Declare Monaco Editor global variable
 declare const monaco: any;
-
 interface Question {
   id: number;
   type: 'mcq' | 'coding';
@@ -42,21 +40,24 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
   languages = ['javascript', 'python', 'c', 'cpp', 'java'];
   selectedLanguage: string = 'javascript';
   questions: Question[] = [];
-  testResults: any[] = [];
   selectedQuestionId: number = 0;
   selectedQuestion: Question | null = null;
   answers: { [key: number]: number | string } = {};
   selectedPDF: File | null = null;
   pdfURL: SafeResourceUrl | null = null;
+  showSubmitPopup: boolean = false;
+  testStarted: boolean = false;
+  testTimeElapsed: number = 0;
+  timeSpent: { [questionId: number]: number } = {};
+  questionStartTime: number = 0;
+
 
   timeLeft: string = '45:00';
   private timerInterval: any;
   private totalSeconds: number = 45 * 60;
-
   private tabSwitchCount: number = 0;
   private maxTabSwitches: number = 5;
-
-  // Store the listener so we can remove it properly
+  retakeTestId: string | null = null;
   private visibilityChangeHandler = this.handleVisibilityChange.bind(this);
 
   constructor(
@@ -68,6 +69,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
     if (navigation?.extras?.state) {
       this.selectedPDF = navigation.extras.state['selectedPDF'] || null;
       this.pdfURL = navigation.extras.state['pdfURL'] || null;
+      this.retakeTestId = navigation.extras.state['retakeFromId'] || null;
     }
   }
 
@@ -76,35 +78,77 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
       this.loadMonacoEditor();
       this.setupTabSwitchDetection();
     }
-    this.startTimer();
-    if (this.selectedPDF) {
+    if (this.retakeTestId) {
+      this.loadRetakeTest(this.retakeTestId);
+    } else if (this.selectedPDF) {
       this.uploadPDF();
     }
   }
 
   ngOnDestroy() {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
+    if (this.timerInterval) clearInterval(this.timerInterval);
     if (isPlatformBrowser(this.platformId)) {
       document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
     }
   }
 
-  private startTimer() {
-    this.timerInterval = setInterval(() => {
-      if (this.totalSeconds <= 0) {
-        clearInterval(this.timerInterval);
-        this.timeLeft = '00:00';
-        this.submit('Time is up!');
-        return;
+  loadRetakeTest(testId: string) {
+    this.http.get<any>(`http://localhost:8000/assessment/test/${testId}/`).subscribe({
+      next: (res) => {
+        this.questions = res.questions || [];
+        if (this.questions.length > 0) {
+          this.selectedQuestionId = this.questions[0].id;
+          this.selectedQuestion = this.questions[0];
+          this.startTimer();  
+          this.questionStartTime = Date.now();
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load retake test:', err);
+        alert('Failed to load previous test.');
       }
+    });
+  }
+
+  startTimer() {
+    this.testStarted = true;
+    this.timerInterval = setInterval(() => {
       this.totalSeconds--;
+      this.testTimeElapsed++;
       const minutes = Math.floor(this.totalSeconds / 60);
       const seconds = this.totalSeconds % 60;
       this.timeLeft = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      if (this.totalSeconds <= 0) {
+        clearInterval(this.timerInterval);
+        this.showSubmitPopup = true;
+      }
     }, 1000);
   }
+
+  openSubmitPopup() {
+    this.showSubmitPopup = true;
+  
+    // Stop timer when popup opens
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+  
+
+  confirmFinalSubmit() {
+    this.submit();
+  }
+
+  get mcqCount(): number {
+    return this.questions.filter(q => q.type === 'mcq' && this.answers[q.id] !== undefined).length;
+  }
+
+  get codingCount(): number {
+    return this.questions.filter(q => q.type === 'coding' && this.answers[q.id] !== undefined).length;
+  }
+  
+  
 
   private loadMonacoEditor() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -128,15 +172,15 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
 
   private initEditorIfNeeded() {
     if (this.selectedQuestion?.type === 'coding' && this.editorElement && !this.editor) {
+      const savedCode = this.answers[this.selectedQuestion.id] as string || this.selectedQuestion.code || '';
+
       this.editor = monaco.editor.create(this.editorElement.nativeElement, {
-        value: this.selectedQuestion.code || '',
+        value: savedCode,
         language: this.selectedQuestion.language || this.selectedLanguage,
         theme: 'vs-dark',
         automaticLayout: true,
         minimap: { enabled: false },
-        fontSize: 14,
-        scrollBeyondLastLine: false,
-        lineNumbers: 'on'
+        fontSize: 14
       });
 
       this.editor.onDidChangeModelContent(() => {
@@ -145,6 +189,28 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  cancelSubmitPopup() {
+    this.showSubmitPopup = false;
+
+    // Resume the timer
+    if (!this.timerInterval) {
+      this.timerInterval = setInterval(() => {
+        if (this.totalSeconds <= 0) {
+          clearInterval(this.timerInterval);
+          this.timeLeft = '00:00';
+          this.submit();
+          return;
+        }
+        this.totalSeconds--;
+        const minutes = Math.floor(this.totalSeconds / 60);
+        const seconds = this.totalSeconds % 60;
+        this.timeLeft = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+  }
+  
+  
 
   private setupTabSwitchDetection() {
     if (isPlatformBrowser(this.platformId)) {
@@ -156,18 +222,15 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId) && document.hidden) {
       this.tabSwitchCount++;
       if (this.tabSwitchCount > this.maxTabSwitches) {
-        this.submit('Test ended due to excessive tab switches!');
+        this.openSubmitPopup();
       } else {
-        alert(`Don't change tab! Tab switches remaining: ${this.maxTabSwitches - this.tabSwitchCount + 1}`);
+        alert(`Don't change tab! Remaining: ${this.maxTabSwitches - this.tabSwitchCount + 1}`);
       }
     }
   }
 
   uploadPDF() {
-    if (!this.selectedPDF) {
-      alert('No PDF file selected');
-      return;
-    }
+    if (!this.selectedPDF) return;
 
     const formData = new FormData();
     formData.append('pdf_file', this.selectedPDF);
@@ -178,21 +241,37 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
         if (this.questions.length > 0) {
           this.selectedQuestionId = this.questions[0].id;
           this.selectedQuestion = this.questions[0];
-          alert('Questions loaded successfully');
+          this.startTimer();  
+          this.questionStartTime = Date.now();
         } else {
-          alert('No questions generated from the PDF');
+          alert('No questions generated');
         }
       },
       error: (error) => {
-        console.error('Error uploading PDF:', error);
+        console.error('Upload error:', error);
         alert('Failed to load questions');
       }
     });
   }
 
   selectQuestion(id: number) {
+    const now = Date.now();
+
+    if (this.selectedQuestion) {
+      const prevId = this.selectedQuestion.id;
+      const timeOnPrev = (now - this.questionStartTime) / 1000;
+      this.timeSpent[prevId] = (this.timeSpent[prevId] || 0) + timeOnPrev;
+    }
+
+    if (this.editor && this.selectedQuestion?.type === 'coding') {
+      const prevCode = this.editor.getValue();
+      this.answers[this.selectedQuestion.id] = prevCode;
+    }
+
     this.selectedQuestionId = id;
     this.selectedQuestion = this.questions.find(q => q.id === id) || null;
+
+    this.questionStartTime = Date.now();
 
     if (this.editor) {
       this.editor.dispose();
@@ -201,9 +280,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
 
     if (this.selectedQuestion?.type === 'coding') {
       this.selectedLanguage = this.selectedQuestion.language || 'javascript';
-      if (isPlatformBrowser(this.platformId)) {
-        setTimeout(() => this.initEditorIfNeeded(), 0);
-      }
+      setTimeout(() => this.initEditorIfNeeded(), 0);
     }
   }
 
@@ -212,7 +289,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
     if (this.editor) {
       monaco.editor.setModelLanguage(this.editor.getModel(), newLang);
     }
-    if (this.selectedQuestion && this.selectedQuestion.type === 'coding') {
+    if (this.selectedQuestion?.type === 'coding') {
       this.selectedQuestion.language = newLang;
     }
   }
@@ -229,54 +306,62 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
     return this.editor ? this.editor.getValue() : '';
   }
 
-  public setCode(code: string) {
-    if (this.editor) {
-      this.editor.setValue(code);
-    }
-  }
-
-  submit(message: string = 'Test submitted (mock implementation).') {
-    if (this.editor && this.selectedQuestion?.type === 'coding') {
-      this.answers[this.selectedQuestionId] = this.editor.getValue();
+  submit() {
+    const now = Date.now();
+    if (this.selectedQuestion) {
+      const lastId = this.selectedQuestion.id;
+      this.timeSpent[lastId] = (this.timeSpent[lastId] || 0) + (now - this.questionStartTime) / 1000;
     }
 
-    console.log('Answers:', this.answers);
-    alert(message);
 
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const userId = user._id;
 
-    if (isPlatformBrowser(this.platformId)) {
-      document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
-    }
-
-    this.router.navigate(['/dashboard/assesment']);
-  }
-
-  runCodeTest() {
-    if (!this.selectedQuestion || this.selectedQuestion.type !== 'coding') return;
-
-    const code = this.getCode();
-    const testCases = (this.selectedQuestion as any).testCases || [];
-
-    if (!code || !testCases.length) {
-      alert('No code or test cases found!');
-      return;
-    }
-
-    this.http.post<any>('http://localhost:8000/assessment/run-code/', {
-      code,
-      language: this.selectedLanguage,
-      testCases
-    }).subscribe({
-      next: (res) => {
-        this.testResults = res.results;
-      },
-      error: (err) => {
-        alert('Failed to run code');
-        console.error(err);
+    const answeredQuestions = this.questions.map(q => {
+      const userAnswer = this.answers[q.id];
+      const qTime = this.timeSpent[q.id] || 0;
+      const base = {
+        id: q.id,
+        type: q.type,
+        text: q.text,
+        timeSpentSeconds: Math.round(qTime)
+      };
+      if (q.type === 'mcq') {
+        return {
+          ...base,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          userAnswer
+        };
+      } else {
+        return {
+          ...base,
+          language: q.language || this.selectedLanguage,
+          userAnswer
+        };
       }
     });
+
+    const payload = {
+      user_id: userId,
+      test_id: `test_${Date.now()}`,
+      created_at: new Date().toISOString(),
+      bookmark: false,
+      total_questions: this.questions.length,
+      time_taken_seconds: this.testTimeElapsed,
+      questions: answeredQuestions,
+      num_correct: answeredQuestions.filter(q => q.type === 'mcq' && (q as any).userAnswer === (q as any).correctAnswer).length,
+      marks: 0
+    };
+
+    this.http.post('http://localhost:8000/assessment/submit/', payload).subscribe({
+      next: () => {
+        this.router.navigate(['/dashboard/assesment']);
+      },
+      error: () => alert('Failed to submit test')
+    });
+
+    clearInterval(this.timerInterval);
   }
+   
 }

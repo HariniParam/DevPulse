@@ -3,12 +3,6 @@
         <div class="history-panel">
             <div class="history-header">
                 <h2 class="history-title">History</h2>
-                <div class="view-all">
-                    <span class="eye-icon">
-                        <img src="../../../assets/icons/eye.svg">
-                      </span>
-                    <p>View All</p>
-                </div>
             </div>
             <div class="history-card-panel">
                 <div class="pagination-buttons">
@@ -45,17 +39,16 @@
                     </div>
                     <div
                       class="test-progress"
-                      [style.--progress]="test.score + '%'"
+                      [style.--progress]="(test.score || 0) + '%'"
                     ></div>
                   </div>
           
                   <div class="test-card-footer">
                     <div class="test-score">
                       <img src="../../../assets/icons/crown.svg" />
-                      <p>{{ test.score }}/100</p>
+                      <p>{{ test.score }}/50</p>
                     </div>
                     <div class="test-retake" (click)="retake(test)">
-                      <img src="../../../assets/icons/download.svg" />
                       <div><p>Retake Test</p></div>
                     </div>
                   </div>
@@ -76,7 +69,7 @@
                 <div class="upload-pdf-inner-panel">
                     <div class="upload-pdf-inner-dotted-panel" (click)="onPanelClick()">
                     <img class="upload-icon" src="../../../assets/icons/upload.svg" alt="">
-                    <h2>Click to Upload PDF</h2>
+                    <h3>Click to Upload PDF (upto 5mb)</h3>
                     <p>Browse your device</p>
                     <input type="file" accept=".pdf" #fileInput hidden (change)="onFileSelected($event)">
                     </div>
@@ -119,7 +112,23 @@
             </div>
         </div>
         <div class="bookmark">
-
-        </div>
+          <h3 class="bookmark-title">BOOKMARKS</h3>
+          <div class="bookmark-search-box">
+            <input type="text" placeholder=" Search Bookmarks" [(ngModel)]="bookmarkSearch" />
+          </div>
+        
+          <div class="bookmark-list">
+            <div class="bookmark-card" *ngFor="let test of filteredBookmarks()">
+              <div class="bookmark-left">
+                <img src="../../../assets/icons/bookmark.svg" class="bookmark-icon" />
+                <span class="bookmark-title-text">{{ test.title }}</span>
+              </div>
+              <div class="bookmark-actions">
+                <img src="../../../assets/icons/download.svg" class="download-icon" (click)="downloadTestAsPDF(test)" />
+                <button class="retake-button" (click)="retake(test)">Retake Test</button>
+              </div>
+            </div>
+          </div>
+        </div>        
     </div>
 </div>
