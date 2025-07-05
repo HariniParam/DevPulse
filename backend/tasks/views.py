@@ -12,12 +12,14 @@ from .serializers import TaskSerializer
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TaskListCreateView(JWTAuthMixin, View):
+    # To list all tasks for a user
     def get(self, request):
         user_id = request.user['_id']
         tasks = list(tasks_collection.find({'user_id': ObjectId(user_id)}))
         serialized = TaskSerializer.serialize_many(tasks)
         return JsonResponse(serialized, safe=False)
 
+    # To create a new task
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -38,6 +40,7 @@ class TaskListCreateView(JWTAuthMixin, View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TaskRetrieveUpdateDeleteView(JWTAuthMixin, View):
+    # To retrieve a specific task
     def get(self, request, task_id):
         try:
             task = tasks_collection.find_one({'_id': ObjectId(task_id), 'user_id': ObjectId(request.user['_id'])})
@@ -47,6 +50,7 @@ class TaskRetrieveUpdateDeleteView(JWTAuthMixin, View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+    # To update a specific task
     def put(self, request, task_id):
         try:
             data = json.loads(request.body)
@@ -69,6 +73,7 @@ class TaskRetrieveUpdateDeleteView(JWTAuthMixin, View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+    # To delete a specific task
     def delete(self, request, task_id):
         try:
             result = tasks_collection.delete_one({'_id': ObjectId(task_id), 'user_id': ObjectId(request.user['_id'])})

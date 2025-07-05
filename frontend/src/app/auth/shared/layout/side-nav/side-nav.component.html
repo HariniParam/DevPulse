@@ -4,9 +4,9 @@
         <h2>DevPulse</h2>
     </div>
     <div class="profile">
-        <img src="./assets/images/profile.png" alt="profile">
-        <h3>Rachel Green</h3>
-        <p>rachelgreen&#64;gmail.com</p>
+        <img [src]="'assets/images/' + (user?.profilepic?.split('/')?.pop() || 'default-profilepic.png')" alt="Profile" />
+        <h3>{{user?.name}}</h3>
+        <p>{{user?.email}}</p>
     </div>
     <div class="nav-links">
         <div class="option">

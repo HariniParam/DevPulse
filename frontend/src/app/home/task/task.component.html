@@ -1,21 +1,42 @@
 <div class="task-container">
+  <!-- Left panel -->
   <div class="left-container">
     <div class="left-header">
       <div class="search-container">
         <img src="../../../assets/icons/search-02.svg" alt="Search Icon"/>
-        <input type="text" class="search-input" placeholder="Search...">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search..."
+          [(ngModel)]="searchQuery"
+          (input)="applyFilters()"
+        />
       </div>
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+        <option value="">All</option>
+        <option value="TODO">To Do</option>
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="COMPLETED">Completed</option>
+      </select>
       <div class="add-container" (click)="openAddTaskPopup()">
         <div class="add-symbol">+</div>
         <p>Add New Task</p>
       </div>
     </div>
+
     <div class="status-panel">
       <div class="status-div total-task">
         <img src="../../../assets/icons/total-task.svg" class="status-icon" alt="Total Tasks Icon"/>
         <div class="status-content">
           <span class="status-number">{{ totalTasks }}</span>
           <p class="status-text">Total Tasks</p>
+        </div>
+      </div>
+      <div class="status-div todo-task">
+        <img src="../../../assets/icons/todo.png" class="status-icon" alt="To Do Icon"/>
+        <div class="status-content">
+          <span class="status-number">{{ todoCount }}</span>
+          <p class="status-text">To Do</p>
         </div>
       </div>
       <div class="status-div on-progress">
@@ -34,20 +55,60 @@
       </div>
     </div>
     <div class="tasklist-container">
-      <div class="task-box" *ngFor="let task of tasks" (click)="openViewPopup(task, $event)" tabindex="0">
+      <div class="task-box" *ngFor="let task of filteredTasks" (click)="openViewPopup(task, $event)" tabindex="0">
         <div class="task-header">
+          <span class="status-indicator"
+          [ngClass]="{
+            'todo': task.status === 'TODO',
+            'in-progress': task.status === 'IN_PROGRESS',
+            'completed': task.status === 'COMPLETED'
+          }"
+          matTooltip="{{ task.status?.replace('_', ' ') }}">
+          </span>
           <h3 class="task-title">{{ task.title }}</h3>
-          <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task" (click)="openConfirmPopup(task, $event)"/>
+          <div class="action-icons">
+            <img src="../../../assets/icons/edit.svg" class="edit-icon" alt="Edit Task" (click)="openAddTaskPopup(task); $event.stopPropagation()"/>
+            <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task" (click)="openConfirmPopup(task, $event)" />
+          </div>
         </div>
         <div class="task-content">
           <p>{{ task.description }}</p>
-        </div>
+        </div>  
       </div>
     </div>
   </div>
+
+  <!-- Right Panel -->
   <div class="right-container">
-    <div class="calender"></div>
-    <div class="today-tasklist"></div>
+    <div class="calender">
+      <mat-calendar *ngIf="tasksLoaded"
+        [(selected)]="selectedDate"
+        [dateClass]="dateClass"
+        (selectedChange)="onSelectedDateChange($event)"
+        ngSkipHydration
+      ></mat-calendar>
+    </div>
+    <div class="today-tasklist">
+      <h3>Tasks for {{ selectedDate | date:'fullDate' }}</h3>
+      <hr class="divider" />
+      <ul>
+       <li *ngFor="let task of tasksForSelectedDate">
+        <label [class.completed]="task.status === 'COMPLETED'">
+          <input 
+            type="checkbox" 
+            [checked]="task.status === 'COMPLETED'" 
+            (change)="toggleTaskStatus(task)" 
+          />
+          {{ task.title }}
+        </label>
+        <span class="view-icon" (click)="openViewPopup(task, $event)" title="View Task"></span>
+        <hr class="divider" />
+      </li>
+      <li *ngIf="tasksForSelectedDate.length === 0" class="no-tasks">
+        No tasks scheduled for this date.
+      </li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -55,16 +116,46 @@
 <div class="popup-overlay" *ngIf="showViewPopup" (click)="closeViewPopup($event)">
   <div class="popup-task-box">
     <div class="task-header">
-      <h3 class="task-title">{{ selectedTask?.title }}</h3>
-      <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task" (click)="openConfirmPopup(selectedTask!, $event)"/>
+      <div class="task-header-left">
+        <span class="status-indicator"
+          [ngClass]="{
+            'todo': selectedTask?.status === 'TODO',
+            'in-progress': selectedTask?.status === 'IN_PROGRESS',
+            'completed': selectedTask?.status === 'COMPLETED'
+          }"
+          matTooltip="{{ selectedTask?.status?.replace('_', ' ') }}"
+        ></span>
+        <h3 class="task-title">{{ selectedTask?.title }}</h3>
+      </div>
+      <div class="task-header-right">
+        <img src="../../../assets/icons/edit.svg" class="edit-icon" alt="Edit Task"
+          (click)="openAddTaskPopup(selectedTask!); $event.stopPropagation()"
+        />
+        <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task"
+          (click)="openConfirmPopup(selectedTask!, $event)"
+        />
+        <img src="../../../assets/icons/close.svg" class="close-icon" alt="close Task"
+          (click)="closeViewPopup()"
+        />
+      </div>
     </div>
+    <div class="divider-line"></div>
+
+    <div class="task-dates">
+      <p><strong>Created At:</strong> {{ selectedTask?.created_at ? (selectedTask?.created_at | date:'medium') : '-' }}</p>
+      <p><strong>Modified At:</strong> {{ selectedTask?.modified_at ? (selectedTask?.modified_at | date:'medium') : '-' }}</p>
+      <p><strong>Scheduled At:</strong> {{ selectedTask?.scheduled_date ? (selectedTask?.scheduled_date | date:'mediumDate') : '-' }}</p>
+    </div>
+
+    <div class="divider-line"></div>
+
     <div class="task-content">
       <p>{{ selectedTask?.description }}</p>
-      <p *ngIf="selectedTask?.scheduled_date">Scheduled: {{ selectedTask?.scheduled_date | date }}</p>
     </div>
-    <button class="close-button" (click)="closeViewPopup()" aria-label="Close popup">Close</button>
+    
   </div>
 </div>
+
 
 <!-- Add Task Popup -->
 <div class="add-task-overlay" *ngIf="showAddPopup" (click)="closeAddPopup($event)">
@@ -82,9 +173,19 @@
         <label for="schedule_date">Schedule</label>
         <input id="scheduled_date" formControlName="scheduled_date" type="date">
       </div>
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" formControlName="status">
+          <option value="TODO">To Do</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+      </div>
       <div class="button-group">
         <button type="button" class="cancel-button" (click)="closeAddPopup()" aria-label="Cancel">Cancel</button>
-        <button type="button" class="save-button" (click)="saveTask()" [disabled]="taskForm.invalid" aria-label="Save task">Save</button>
+        <button type="button" class="save-button" (click)="saveTask()" [disabled]="taskForm.invalid" aria-label="Save task">
+          {{ isEditMode ? 'Update' : 'Save' }}
+        </button>
       </div>
     </form>
   </div>
@@ -101,3 +202,11 @@
     </div>
   </div>
 </div>
+
+<!-- Success/Error Message popup-->
+<app-popup
+  *ngIf="popupVisible"
+  [message]="popupMessage"
+  [type]="popupType"
+  (close)="popupVisible = false">
+</app-popup>

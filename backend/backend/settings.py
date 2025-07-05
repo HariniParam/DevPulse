@@ -41,17 +41,9 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'resume',
-    'tasks'
+    'tasks',
+    'news'
 ]
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -143,6 +135,7 @@ from decouple import config
 
 MONGO_URI = config('MONGO_URI')
 JWT_SECRET = config('JWT_SECRET')
+NEWS_API = config('NEWS_API')
 
 # Resume Analyzer Configuration
 ALLOWED_FILE_EXTENSIONS = ['.pdf']  # Add more extensions if needed

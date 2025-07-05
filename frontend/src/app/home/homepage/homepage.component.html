@@ -2,10 +2,10 @@
     <div class="left-panel">
         <div class="left-top">
             <div class="left-top-title">
-                <h3>HI, Rachel Green</h3>
-                <p>Welcome to ABC website, have a nice day</p>
+                <h3>HI, {{ user?.name || 'User' }}</h3>
+                <p>Welcome to DevPulse, have a nice day</p>
             </div>
-            <div class="add-task">
+            <div class="add-task" (click)="navigateToTaskPageWithPopup()">
                 <div class="add-symbol">+</div>
                 <p>Add New Task</p>
             </div>
@@ -51,34 +51,63 @@
                 </div>
             </div>
         </div>
-        <div class="left-news">
+        <div class="left-news" *ngIf="articles.length > 0">
             <div class="main-news">
-                <img src="./assets/icons/news.svg" alt="">
+                <a [href]="articles[0].url" target="_blank">
+                    <img [src]="articles[0].urlToImage || './assets/icons/news.svg'" alt="Main news image">
+                    <p>{{ articles[0].title }}</p>
+                </a>
+                <p>{{ articles[0].description }}</p>
+                <p><small>By {{ articles[0].author || 'Unknown' }} | {{ articles[0].publishedAt | date:'mediumDate' }}</small></p>
+                <small>Source: {{ articles[0].source.name }}</small>
             </div>
+
             <div class="side-news">
-                <div class="side-news-item">
-                    <img src="./assets/icons/news.svg" alt="">
+                <div class="side-news-item" *ngFor="let article of articles.slice(1)">
+                    <img [src]="article.urlToImage || './assets/icons/news.svg'" alt="news">
                     <div class="side-news-content">
-                        <hr><hr><hr><hr>
-                    </div>
-                    
-                </div>
-                <div class="side-news-item">
-                    <img src="./assets/icons/news.svg" alt="">
-                    <div class="side-news-content">
-                        <hr><hr><hr><hr>
+                        <a [href]="article.url" target="_blank">
+                            <p>{{ article.title }}</p>
+                        </a>
+                        <p>{{ articles[0].description }}</p>
+                        <p class="news-detail"><small>By {{ articles[0].author || 'Unknown' }} | {{ articles[0].publishedAt | date:'mediumDate' }}</small></p>
+                        <small>Source: {{ article.source.name }}</small>
+                        <hr />
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- Optional fallback when no articles -->
+        <div class="left-news" *ngIf="articles.length === 0">
+            <p>Loading news or no articles found.</p>
         </div>
     </div>
     <div class="right-panel">
         <div class="right-top">
             <h3>Calendar</h3>
-            <img src="" alt="bell">
+            <div class="bell-bg">
+                <img src="./assets/icons/bell.svg" alt="bell">
+            </div>
         </div>
         <div class="right-content">
+            <ng-container *ngIf="groupedTasksArray.length > 0; else noTasks">
+                <div *ngFor="let group of groupedTasksArray">
+                    <h4>{{ group.date }}</h4>
+                    <div class="task-card"
+                        *ngFor="let task of group.tasks"
+                        [ngClass]="{
+                            'todo-task': task.status === 'TODO',
+                            'inprogress-task': task.status === 'IN_PROGRESS'
+                        }">
+                        <h5 (click)="navigateToTaskDetail(task.id)">{{ task.title }}</h5>
+                        <p>{{ task.description | slice:0:80 }}{{ task.description.length > 50 ? '...' : '' }}</p>
+                    </div>
+                </div>
+            </ng-container>
 
+            <ng-template #noTasks>
+                <p>No upcoming tasks found.</p>
+            </ng-template>
         </div>
     </div>
 </div>

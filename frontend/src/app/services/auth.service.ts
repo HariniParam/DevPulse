@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { NewsService } from './news.service';
 
 export interface SignupData {
   name: string;
@@ -36,12 +37,13 @@ export class AuthService {
   private _userSubject = new BehaviorSubject<User | null>(this._user);
   user$ = this._userSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private newsService: NewsService) {
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('auth_user');
       if (storedUser) {
         try {
           this._user = JSON.parse(storedUser);
+          this._userSubject.next(this._user);
         } catch (e) {
         }
       }
@@ -89,6 +91,7 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      this.newsService.clearCache();
     }
   }
 }
