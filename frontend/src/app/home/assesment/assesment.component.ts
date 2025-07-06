@@ -10,7 +10,7 @@ import autoTable from 'jspdf-autotable';
 
 
 interface TestResult {
-  id: number;
+  id: string;
   title: string;
   date: string;
   numQuestions: number;
@@ -34,6 +34,8 @@ export class AssesmentComponent implements OnInit {
   contests: Contest[] = [];
   bookmarkedTests: TestResult[] = [];
   bookmarkSearch: string = '';
+  _historySearch: string = '';
+  filteredTests: TestResult[] = [];
 
 
   constructor(
@@ -47,11 +49,32 @@ export class AssesmentComponent implements OnInit {
   visibleCount = 3;
 
   get visibleTests(): TestResult[] {
-    return this.tests.slice(this.startIndex, this.startIndex + this.visibleCount);
+    const query = this.historySearch.toLowerCase();
+
+    this.filteredTests = this.tests.filter(test =>
+      test.title.toLowerCase().includes(query)
+    );
+
+    // Clamp startIndex if it exceeds the filtered array
+    if (this.startIndex >= this.filteredTests.length) {
+      this.startIndex = 0;
+    }
+
+    return this.filteredTests.slice(this.startIndex, this.startIndex + this.visibleCount);
   }
+  
+
+  get historySearch(): string {
+    return this._historySearch;
+  }
+  set historySearch(value: string) {
+    this._historySearch = value;
+    this.startIndex = 0; // Reset pagination when filtering
+  }
+  
 
   next(): void {
-    if (this.startIndex + this.visibleCount < this.tests.length) {
+    if (this.startIndex + this.visibleCount < this.filteredTests.length) {
       this.startIndex += 1;
     }
   }
@@ -63,27 +86,26 @@ export class AssesmentComponent implements OnInit {
   }
 
   toggleBookmark(test: TestResult): void {
-    // Toggle locally
     test.bookmarked = !test.bookmarked;
 
-    // Call backend to update
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const userId = user._id;
+
     this.http.patch(`http://localhost:8000/assessment/bookmark/${test.id}/`, {
       bookmarked: test.bookmarked
     }).subscribe({
       next: () => {
         console.log('Bookmark updated successfully.');
+        this.fetchBookmarkedTests(userId); // ✅ only after success
       },
       error: (err) => {
         console.error('Failed to update bookmark:', err);
         alert('Failed to update bookmark in the database.');
-        // Revert on failure
-        test.bookmarked = !test.bookmarked;
+        test.bookmarked = !test.bookmarked; // revert on failure
       }
     });
-    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
-    const userId = user._id;
-    this.fetchBookmarkedTests(userId);
   }
+  
   
 
   onPanelClick(): void {
@@ -274,6 +296,26 @@ export class AssesmentComponent implements OnInit {
           alert('Failed to download PDF.');
         }
       });
+  }
+  
+  deleteTest(testId: string, event: Event): void {
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const userId = user._id;
+    event.stopPropagation(); 
+
+    if (confirm("Are you sure you want to delete this test?")) {
+      this.http.delete(`http://localhost:8000/assessment/test/${testId}/`).subscribe({
+        next: () => {
+          this.tests = this.tests.filter(t => String(t.id) !== testId); 
+          this.startIndex = 0; 
+        },
+        error: err => {
+          console.error('Delete failed:', err);
+          alert("Failed to delete the test.");
+        }
+      });
+    }
+    this.fetchBookmarkedTests(userId);
   }
   
   

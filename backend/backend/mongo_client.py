@@ -7,5 +7,5 @@ client = MongoClient(MONGO_URI)
 db = client['devpulse']
 users_collection = db['users']
 tasks_collection = db['tasks']
-questions_collection = db['questions']
 test_attempts_collection = db["test_attempts"]
+resume_analysis_collection = db["resume_analysis"]

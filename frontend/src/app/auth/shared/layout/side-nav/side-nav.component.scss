@@ -22,6 +22,7 @@
         justify-content: center;
         align-items: center;
         margin-top: 2rem;
+        gap: 0.25rem;
         h3{
             font-size: 1.5rem;
             color: var(--primary-color);
@@ -31,15 +32,25 @@
             color: var(--primary-color);
         }
         img {
-            width: 5rem;
-            height: 5rem;
+            width: 8rem;
+            height: 8rem;
+            border-radius: 50%;
+            border: 0.25rem solid var(--primary-color);
         }
+    }
+
+    hr{
+        height: 0.1rem;
+        width: 14rem;
+        background-color: var(--primary-color);
+        margin: 3rem 0 0 0;
     }
 
     .logout-option {
         position: relative;
-        top: 30px;
-        left: 17px;
+        top: 2rem;
+        display: flex;
+        flex-direction: row;
         cursor: pointer;
         align-items: center;
         gap: 1rem;
@@ -58,7 +69,7 @@
     .nav-links{
         display: flex;
         flex-direction: column;
-        margin: 2rem 0;
+        margin: 2.5rem 0 2rem 0;
         .option{
             display: flex;
             flex-direction: row;
@@ -67,32 +78,11 @@
             gap: 1rem;
             padding-top: 1rem;
             cursor: pointer;
-            p{
+            .nav-text {
                 font-weight: bold;
                 color: var(--primary-color);
                 font-size: 1.25rem;
             }
         }
     }
-
-    .social-links{
-        display: flex;
-        position: relative;
-        bottom: 0;
-        padding: 0;
-        flex-direction: row;
-        gap: 1rem;
-        margin-top: 2rem;
-        .social{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 25%;
-            background-color: #77625B;
-            cursor: pointer;
-        }
-    }
-
 }

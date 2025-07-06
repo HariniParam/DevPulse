@@ -1,5 +1,5 @@
 <div class="homepage-container">
-    <div class="left-panel">
+    <div class="left-panel" [ngClass]="{ 'expanded': !isRightPanelVisible }">
         <div class="left-top">
             <div class="left-top-title">
                 <h3>HI, {{ user?.name || 'User' }}</h3>
@@ -82,7 +82,11 @@
             <p>Loading news or no articles found.</p>
         </div>
     </div>
-    <div class="right-panel">
+    <button class="toggle-button" (click)="toggleRightPanel()" [ngClass]="{ 'expanded': !isRightPanelVisible }">
+        <img src="../../../assets/icons/right-arrow.png"
+            [ngStyle]="{ transform: isRightPanelVisible ? 'rotate(180deg)' : 'rotate(0deg)' }" alt="Toggle Panel" />
+    </button>      
+    <div class="right-panel" [class.hidden]="!isRightPanelVisible">
         <div class="right-top">
             <h3>Calendar</h3>
             <div class="bell-bg">

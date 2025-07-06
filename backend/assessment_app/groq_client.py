@@ -186,7 +186,6 @@ def evaluate_code_questions(coding_questions):
                 max_tokens=1000
             )
 
-            import json, re
             content = response.choices[0].message.content.strip()
             match = re.search(r'{.*}', content, re.DOTALL)
             result = json.loads(match.group(0)) if match else {"score": 0, "remarks": "No valid response", "suggestedCode": ""}

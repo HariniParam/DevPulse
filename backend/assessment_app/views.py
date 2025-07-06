@@ -1,3 +1,4 @@
+from copy import deepcopy
 import datetime
 import json
 import logging
@@ -19,7 +20,7 @@ import fitz  # PyMuPDF
 
 from .serializers import PDFUploadSerializer
 from .groq_client import generate_questions_with_groq,evaluate_code_questions
-from backend.mongo_client import test_attempts_collection, questions_collection
+from backend.mongo_client import test_attempts_collection
 
 # Setup
 load_dotenv()
@@ -118,9 +119,6 @@ class PDFQuestionUploadView(APIView):
                     q['language'] = language
                     q['code'] = q.get('code', '')
 
-            inserted = questions_collection.insert_many(questions)
-            for i, q in enumerate(questions):
-                q['_id'] = str(inserted.inserted_ids[i])
 
             return Response({'questions': questions}, status=200)
 
@@ -232,18 +230,39 @@ class AssessmentHistoryView(APIView):
 
 
 class RetakeTestView(APIView):
+    from copy import deepcopy
+
     def get(self, request, test_id):
         try:
             test = test_attempts_collection.find_one({"_id": ObjectId(test_id)})
             if not test:
                 return Response({'error': 'Test not found'}, status=404)
 
-            questions = test.get('questions', [])
+            questions = deepcopy(test.get('questions', [])) 
+
+            for q in questions:
+                if 'userAnswer' in q:
+                    q['userAnswer'] = None  # or simply: del q['userAnswer']
+                if 'codeAnswer' in q:
+                    q['codeAnswer'] = ''   
+
             return Response({'questions': questions}, status=200)
 
         except Exception as e:
             logger.exception(f"Error loading retake test {test_id}: {e}")
             return Response({'error': 'Internal server error'}, status=500)
+
+        
+    def delete(self, request, test_id):
+        try:
+            result = test_attempts_collection.delete_one({"_id": ObjectId(test_id)})
+            if result.deleted_count == 1:
+                return Response({"message": "Test deleted successfully"}, status=200)
+            else:
+                return Response({"error": "Test not found"}, status=404)
+        except Exception as e:
+            logger.exception("Delete test error")
+            return Response({"error": "Internal server error"}, status=500)
 
 
 class BookmarkedTestsView(APIView):
