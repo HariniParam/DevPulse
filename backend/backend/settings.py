@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'contests',
     'assessment_app',
     'news',
+    'analysis'
 ]
 
 # REST_FRAMEWORK = {

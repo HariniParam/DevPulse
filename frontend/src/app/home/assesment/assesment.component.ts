@@ -37,7 +37,6 @@ export class AssesmentComponent implements OnInit {
   _historySearch: string = '';
   filteredTests: TestResult[] = [];
 
-
   constructor(
     private sanitizer: DomSanitizer,
     private contestService: ContestService,
@@ -185,7 +184,15 @@ export class AssesmentComponent implements OnInit {
         retakeFromId: test.id
       }
     });
-  }  
+  } 
+  
+  viewAnalysis(test: TestResult): void {
+    this.router.navigate([`/dashboard/assesment/${test.id}/analysis`], {
+      state: {
+        analysisTestId: test.id
+      }
+    });
+  }
 
   filteredBookmarks(): TestResult[] {
     const query = this.bookmarkSearch.toLowerCase();

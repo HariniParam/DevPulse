@@ -53,6 +53,9 @@
                       <img src="../../../assets/icons/crown.svg" />
                       <p>{{ test.score }}/50</p>
                     </div>
+                    <div class="view-analysis" (click)="viewAnalysis(test)">
+                      <div><p>View Analysis</p></div>
+                    </div>
                     <div class="test-retake" (click)="retake(test)">
                       <div><p>Retake Test</p></div>
                     </div>
