@@ -1,0 +1,409 @@
+<div class="analysis-container">
+  <div class="tab-header">
+    <button class="tab" (click)="goBack()">
+      ← Back
+    </button>
+    <div class="tab" [class.active]="activeTab === 'analysis'" (click)="activeTab = 'analysis'">
+      <img src="../../../assets/icons/bar_chart.svg"/>
+      Detailed Analysis
+    </div>
+    <div class="tab" [class.active]="activeTab === 'answers'" (click)="activeTab = 'answers'">
+      <img src="../../../assets/icons/view_answers.svg"/>
+      Answer Review
+    </div>
+  </div>
+
+  <div class="tab-content" *ngIf="activeTab === 'analysis'">
+    <!-- Performance Overview -->
+    <div class="performance-overview">
+      <div class="performance-header">
+        <h2>Performance Overview</h2>
+        <div class="performance-rating">
+          <span class="rating-label">Performance Rating:</span>
+          <span class="rating-value">{{ getPerformanceRating(testData.marks) | titlecase }}</span>
+        </div>
+      </div>
+      <div class="overview-cards">
+        <div class="metric-card">
+          <div class="metric-icon">
+            <img src="../../../assets/icons/target.svg"/>
+          </div>
+          <div class="metric-content">
+            <h3>{{ testData.marks }}</h3>
+            <p>Total Score</p>
+            <span class="metric-subtitle">out of {{ totalMarks }}</span>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-icon">
+            <img src="../../../assets/icons/accuracy.svg"/>
+          </div>
+          <div class="metric-content">
+            <h3>{{ performanceMetrics.accuracy }}%</h3>
+            <p>Accuracy</p>
+            <span class="metric-subtitle">{{ testData.correct_answers }}/{{ testData.total_questions }} correct</span>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-icon">
+            <img src="../../../assets/icons/clock.svg"/>
+          </div>
+          <div class="metric-content">
+            <h3>{{ performanceMetrics.averageTimePerQuestion }}s</h3>
+            <p>Avg Time/Question</p>
+            <span class="metric-subtitle">{{ testData.time_taken }}s total</span>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-icon">
+            <img class="thunder" src="../../../assets/icons/thunder.svg"/>
+          </div>
+          <div class="metric-content">
+            <h3>{{ performanceMetrics.efficiency }}%</h3>
+            <p>Efficiency</p>
+            <span class="metric-subtitle">Score per second</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <h2>Visual Analytics</h2>
+      
+      <!-- First Row - Primary Charts -->
+      <div class="charts-row">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Section-wise Performance</h3>
+            <p>Score distribution across different question types</p>
+          </div>
+          <canvas baseChart 
+            [data]="scoreBarData"
+            [options]="barChartOptions"
+            [type]="'bar'">
+          </canvas>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Answer Distribution</h3>
+            <p>Breakdown of correct vs incorrect answers</p>
+          </div>
+          <canvas baseChart 
+            [data]="accuracyPieData"
+            [options]="pieChartOptions"
+            [type]="'pie'">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Second Row - Time Analysis -->
+      <div class="charts-row">
+        <div class="chart-container wide">
+          <div class="chart-header">
+            <h3>Time Analysis per Question</h3>
+            <p>Time spent on each question throughout the test</p>
+          </div>
+          <canvas baseChart 
+            [data]="timeLineData"
+            [options]="lineChartOptions"
+            [type]="'line'">
+          </canvas>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Performance Radar</h3>
+            <p>Multi-dimensional performance analysis</p>
+          </div>
+          <canvas baseChart 
+            [data]="performanceRadarData"
+            [options]="radarChartOptions"
+            [type]="'radar'">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Third Row - Progress and Difficulty -->
+      <div class="charts-row">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Progress Timeline</h3>
+            <p>Cumulative score progression</p>
+          </div>
+          <canvas baseChart 
+            [data]="progressLineData"
+            [options]="lineChartOptions"
+            [type]="'line'">
+          </canvas>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Difficulty Distribution</h3>
+            <p>Questions categorized by difficulty level</p>
+          </div>
+          <canvas baseChart 
+            [data]="difficultyBarData"
+            [options]="barChartOptions"
+            [type]="'bar'">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Analysis Section -->
+    <div class="detailed-analysis">
+      <h2>Detailed Analysis</h2>
+      
+      <div class="analysis-grid">
+        <!-- Strengths & Weaknesses -->
+        <div class="analysis-card strengths-card">
+          <h3><img src="../../../assets/icons/target.svg"/> Strengths & Weaknesses</h3>
+          <div class="strength-weakness-content">
+            <div class="strength-section">
+              <h4>Strengths</h4>
+              <ul>
+                <li *ngIf="strengthsWeaknesses.mcqAccuracy > 70">Strong MCQ performance ({{ strengthsWeaknesses.mcqAccuracy }}%)</li>
+                <li *ngIf="strengthsWeaknesses.codingAccuracy > 70">Excellent coding skills ({{ strengthsWeaknesses.codingAccuracy }}%)</li>
+                <li *ngIf="strengthsWeaknesses.fastestCategory">Fastest in {{ strengthsWeaknesses.fastestCategory }} questions</li>
+                <li *ngIf="performanceMetrics.accuracy > 80">High accuracy rate</li>
+                <li *ngIf="performanceMetrics.efficiency > 70">Good time efficiency</li>
+              </ul>
+            </div>
+            <div class="weakness-section">
+              <h4>Areas for Improvement</h4>
+              <ul>
+                <li *ngIf="strengthsWeaknesses.mcqAccuracy < 70">MCQ accuracy needs improvement ({{ strengthsWeaknesses.mcqAccuracy }}%)</li>
+                <li *ngIf="strengthsWeaknesses.codingAccuracy < 70">Coding skills need attention ({{ strengthsWeaknesses.codingAccuracy }}%)</li>
+                <li *ngIf="strengthsWeaknesses.slowestCategory">Slower in {{ strengthsWeaknesses.slowestCategory }} questions</li>
+                <li *ngIf="performanceMetrics.accuracy < 60">Focus on accuracy improvement</li>
+                <li *ngIf="performanceMetrics.efficiency < 50">Work on time management</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Analysis -->
+        <div class="analysis-card time-analysis-card">
+          <h3><img src="../../../assets/icons/clock.svg"/> Time Analysis</h3>
+          <div class="time-metrics">
+            <div class="time-metric">
+              <span class="metric-label">Fastest Question:</span>
+              <span class="metric-value">{{ timeAnalysis.fastest }}s</span>
+            </div>
+            <div class="time-metric">
+              <span class="metric-label">Slowest Question:</span>
+              <span class="metric-value">{{ timeAnalysis.slowest }}s</span>
+            </div>
+            <div class="time-metric">
+              <span class="metric-label">Median Time:</span>
+              <span class="metric-value">{{ timeAnalysis.median }}s</span>
+            </div>
+          </div>
+          <div class="time-distribution">
+            <h4>Time Distribution</h4>
+            <div class="distribution-bars">
+              <div class="dist-bar">
+                <span>Fast (< 80% avg)</span>
+                <div class="bar-container">
+                  <div class="bar fast-bar" [style.width.%]="(timeAnalysis.timeDistribution.fast / testData.total_questions) * 100"></div>
+                </div>
+                <span>{{ timeAnalysis.timeDistribution.fast }}</span>
+              </div>
+              <div class="dist-bar">
+                <span>Average</span>
+                <div class="bar-container">
+                  <div class="bar avg-bar" [style.width.%]="(timeAnalysis.timeDistribution.average / testData.total_questions) * 100"></div>
+                </div>
+                <span>{{ timeAnalysis.timeDistribution.average }}</span>
+              </div>
+              <div class="dist-bar">
+                <span>Slow (> 120% avg)</span>
+                <div class="bar-container">
+                  <div class="bar slow-bar" [style.width.%]="(timeAnalysis.timeDistribution.slow / testData.total_questions) * 100"></div>
+                </div>
+                <span>{{ timeAnalysis.timeDistribution.slow }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Insights -->
+        <div class="analysis-card insights-card">
+          <h3><img src="../../../assets/icons/bulb.svg"/>  Performance Insights</h3>
+          <div class="insights-content">
+            <div class="insight-item">
+              <div class="insight-icon">
+                <img src="../../../assets/icons/bar_chart.svg"/>
+              </div>
+              <div class="insight-text">
+                <h4>Score Efficiency</h4>
+                <p>You scored {{ (testData.marks / totalMarks * 100).toFixed(1) }}% of total possible points</p>
+              </div>
+            </div>
+            <div class="insight-item">
+              <div class="insight-icon">
+                <img src="../../../assets/icons/target.svg"/>
+              </div>
+              <div class="insight-text">
+                <h4>Accuracy Trend</h4>
+                <p>Your accuracy rate of {{ performanceMetrics.accuracy }}% indicates {{ performanceMetrics.accuracy > 80 ? 'excellent' : performanceMetrics.accuracy > 60 ? 'good' : 'room for improvement' }} performance</p>
+              </div>
+            </div>
+            <div class="insight-item">
+              <div class="insight-icon">
+                <img src="../../../assets/icons/thunder.svg"/>
+              </div>
+              <div class="insight-text">
+                <h4>Time Management</h4>
+                <p>{{ performanceMetrics.averageTimePerQuestion < 45 ? 'Excellent' : performanceMetrics.averageTimePerQuestion < 90 ? 'Good' : 'Needs improvement' }} time management with {{ performanceMetrics.averageTimePerQuestion }}s average per question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="analysis-card recommendations-card">
+          <h3><img src="../../../assets/icons/rocket.svg"/>  Recommendations</h3>
+          <div class="recommendations-content">
+            <div class="recommendation-item" *ngIf="performanceMetrics.accuracy < 80">
+              <div class="item-header">
+                <h4>Improve Accuracy</h4>
+                <div class="rec-priority high">High Priority</div>
+              </div>
+              <p>Focus on understanding concepts better. Review incorrect answers and practice similar questions.</p>
+            </div>
+            <div class="recommendation-item" *ngIf="performanceMetrics.averageTimePerQuestion > 90">
+              <div class="item-header">
+                <h4>Time Management</h4>
+                <div class="rec-priority medium">Medium Priority</div>
+              </div>
+              <p>Practice timed questions to improve speed. Set time limits for each question type.</p>
+            </div>
+            <div class="recommendation-item" *ngIf="strengthsWeaknesses.codingAccuracy < 70">
+              <div class="item-header">
+                <h4>Coding Skills</h4>
+                <div class="rec-priority high">High Priority</div>
+              </div>
+              <p>Practice more coding problems. Focus on algorithm optimization and code structure.</p>
+            </div>
+            <div class="recommendation-item">
+              <div class="item-header">
+                <h4>Maintain Strengths</h4>
+                <div class="rec-priority low">Low Priority</div>
+              </div>
+              <p>Continue practicing areas where you performed well to maintain consistency.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Answers Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'answers'">
+    <div class="answers-header">
+      <h2>Answer Review</h2>
+      <div class="filter-controls">
+        <button class="filter-btn" [class.active]="filterType === 'all'" 
+            (click)="filterQuestions('all')">All Questions</button>
+        <button class="filter-btn" [class.active]="filterType === 'correct'"
+            (click)="filterQuestions('correct')">Correct Only</button>
+        <button class="filter-btn" [class.active]="filterType === 'incorrect'"
+            (click)="filterQuestions('incorrect')">Incorrect Only</button>
+        <button class="filter-btn" [class.active]="filterType === 'coding'"
+            (click)="filterQuestions('coding')">Coding Questions</button>
+      </div>
+    </div>
+    
+    <div class="questions-container">
+        <div *ngFor="let q of filteredQuestions; let i = index" class="question-card" 
+           [class.correct]="q.userAnswer === q.correctAnswer || (q.evaluation?.score || 0) > 70"
+           [class.incorrect]="q.userAnswer !== q.correctAnswer && (q.evaluation?.score || 0) <= 70">
+        
+        <div class="question-header">
+          <div class="question-number">Q{{ i + 1 }}</div>
+          <div class="question-type">{{ q.type.toUpperCase() }}</div>
+          <div class="question-score">
+            <span *ngIf="q.type === 'mcq'">{{ q.userAnswer === q.correctAnswer ? 1 : 0 }}/1</span>
+            <span *ngIf="q.type === 'coding'">{{ (q.evaluation?.score || 0) / 5 | number:'1.0-0' }}/20</span>
+          </div>
+          <div class="question-time">{{ q.timeSpentSeconds }}s</div>
+        </div>
+        
+        <div class="question-content">
+          <p class="question-text"><strong>Question:</strong> {{ q.text }}</p>
+
+          <ng-container *ngIf="q.type === 'mcq'">
+            <div class="mcq-options">
+              <div *ngFor="let opt of q.options; let optIndex = index" 
+                   class="option-item"
+                   [class.correct-option]="optIndex === q.correctAnswer"
+                   [class.user-selected]="optIndex === q.userAnswer"
+                   [class.wrong-selection]="optIndex === q.userAnswer && optIndex !== q.correctAnswer">
+                <span class="option-label">{{ String.fromCharCode(65 + optIndex) }}.</span>
+                <span class="option-text">{{ opt }}</span>
+                <span class="option-indicator">
+                  <span *ngIf="optIndex === q.correctAnswer" class="correct-mark">✓</span>
+                  <span *ngIf="optIndex === q.userAnswer && optIndex !== q.correctAnswer" class="wrong-mark">✗</span>
+                </span>
+              </div>
+            </div>
+            <div class="answer-summary">
+                <span class="your-answer">Your Answer: {{ String.fromCharCode(65 + (q.userAnswer ?? 0)) }}</span>
+                <span class="correct-answer">Correct Answer: {{ String.fromCharCode(65 + (q.correctAnswer ?? 0)) }}</span>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="q.type === 'coding' && q.evaluation">
+            <div class="coding-section">
+              <div class="user-code-section">
+                <h4>Your Solution:</h4>
+                <pre class="code-block user-code">{{ q.userAnswer }}</pre>
+              </div>
+              
+              <div class="evaluation-section">
+                <div class="evaluation-header">
+                  <h4>Evaluation Results</h4>
+                  <div class="score-badge" [class.high-score]="q.evaluation.score > 70"
+                       [class.medium-score]="q.evaluation.score > 40 && q.evaluation.score <= 70"
+                       [class.low-score]="q.evaluation.score <= 40">
+                    {{ (q.evaluation.score || 0) / 5 | number:'1.0-0' }}/20
+                  </div>
+                </div>
+                <p class="evaluation-remarks"><strong>Remarks:</strong> {{ q.evaluation.remarks || 'No remarks available' }}</p>
+              </div>
+
+              <div class="suggested-code-section" *ngIf="selectedLang[q.id]">
+                <div class="suggested-code-toggle">
+                  <div class="toggle-header" (click)="toggleVisibility[q.id] = !toggleVisibility[q.id]">
+                    <h4>Suggested Solution ({{ selectedLang[q.id] }})</h4>
+                    <span class="toggle-arrow">{{ toggleVisibility[q.id] ? '▲' : '▼' }}</span>
+                  </div>
+
+                  <div class="suggested-content" *ngIf="toggleVisibility[q.id]">
+                    <div class="language-tabs" *ngIf="getLanguages(q).length > 1">
+                      <button 
+                        *ngFor="let lang of getLanguages(q)" 
+                        (click)="selectedLang[q.id] = lang"
+                        class="lang-tab"
+                        [class.active]="selectedLang[q.id] === lang">
+                        {{ lang }}
+                      </button>
+                    </div>
+                    <pre class="code-block suggested-code">{{ q.evaluation.suggestedCode[selectedLang[q.id]] }}</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

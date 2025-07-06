@@ -8,6 +8,7 @@ import { ResumeComponent } from './home/resume/resume.component';
 import { TaskComponent } from './home/task/task.component';
 import { AssesmentComponent } from './home/assesment/assesment.component';
 import { AssesmentCreateComponent } from './home/assesment-create/assesment-create.component';
+import { AnalysisComponent } from './home/analysis/analysis.component';
 
 export const routes: Routes = [
   { path: 'signin', component: SigninComponent },
@@ -24,5 +25,6 @@ export const routes: Routes = [
       { path: 'assesment', component: AssesmentComponent}
     ]
   },
-  { path: 'dashboard/assesment/create', component: AssesmentCreateComponent }
+  { path: 'dashboard/assesment/create', component: AssesmentCreateComponent },
+  { path: 'dashboard/assesment/:id/analysis', component: AnalysisComponent }
 ];
