@@ -17,6 +17,7 @@ export class HomepageComponent {
   user: User | null = null;
   groupedTasksArray: { date: string, tasks: Task[] }[] = [];
   articles: Article[] = [];
+  isRightPanelVisible = true;
 
   constructor(private router: Router, 
     private taskService: TaskService, 
@@ -47,6 +48,11 @@ export class HomepageComponent {
       error: (err) => console.error('Failed to fetch news:', err)
     });
   }
+
+  toggleRightPanel() {
+    this.isRightPanelVisible = !this.isRightPanelVisible;
+  }
+
 
   private groupTasksByDate(tasks: Task[]): { [date: string]: Task[] } {
     return tasks.reduce((acc, task) => {

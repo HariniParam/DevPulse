@@ -4,51 +4,43 @@
         <h2>DevPulse</h2>
     </div>
     <div class="profile">
-        <img [src]="'assets/images/' + (user?.profilepic?.split('/')?.pop() || 'default-profilepic.png')" alt="Profile" />
+        <img [src]="previewUrl || 'assets/images/' + 'default-profilepic.png'" alt="Profile" class="profile-pic"/>
         <h3>{{user?.name}}</h3>
         <p>{{user?.email}}</p>
     </div>
     <div class="nav-links">
-        <div class="option">
-            <img src="../../../../../assets/icons/home.svg" alt="">
-            <p routerLink="/dashboard/home" class="active">Home</p>
-        </div>
-        <div class="option">
-            <img src="../../../../../assets/icons/task.svg" alt="">
-            <p routerLink="/dashboard/tasklist">Task List</p>
-        </div>
-        <div class="option">
-            <img src="../../../../../assets/icons/analysis.svg" alt="">
-            <p routerLink="/analysis">Analysis</p>
-        </div>
-        <div class="option">
-            <img src="../../../../../assets/icons/agreement.svg" alt="">
-            <p routerLink="/dashboard/assesment">Assesment</p>
-        </div>
-        <div class="option">
-            <img src="../../../../../assets/icons/suitcase.svg" alt="">
-            <p routerLink="/dashboard/resume">Resume</p>
-        </div>
-        <div class="option" routerLink="/dashboard/settings" routerLinkActive="active">
-            <img src="../../../../../assets/icons/settings.svg" alt="">
-            <p>Settings</p>
+        <div class="option" routerLink="/dashboard/home" routerLinkActive="active" #homeRla="routerLinkActive">
+            <img [src]="homeRla.isActive ? 'assets/icons/home_active.svg' : 'assets/icons/home.svg'" alt="Home" />
+            <p class="nav-text" [class.active]="homeRla.isActive">Home</p>
         </div>
         
+        <div class="option" routerLink="/dashboard/tasklist" routerLinkActive="active" #taskRla="routerLinkActive">
+            <img [src]="taskRla.isActive ? 'assets/icons/task_active.svg' : 'assets/icons/task.svg'" alt="Task List" />
+            <p class="nav-text" [class.active]="taskRla.isActive">Task List</p>
+        </div>
+        
+        <div class="option" routerLink="/dashboard/assesment" routerLinkActive="active" #assessRla="routerLinkActive">
+            <img [src]="assessRla.isActive ? 'assets/icons/agreement_active.svg' : 'assets/icons/agreement.svg'"
+                alt="Assessment" />
+            <p class="nav-text" [class.active]="assessRla.isActive">Assesment</p>
+        </div>
+        
+        <div class="option" routerLink="/dashboard/resume" routerLinkActive="active" #resumeRla="routerLinkActive">
+            <img [src]="resumeRla.isActive ? 'assets/icons/suitcase_active.svg' : 'assets/icons/suitcase.svg'" alt="Resume" />
+            <p class="nav-text" [class.active]="resumeRla.isActive">Resume</p>
+        </div>
+        
+        <div class="option" routerLink="/dashboard/settings" routerLinkActive="active" #settingsRla="routerLinkActive">
+            <img [src]="settingsRla.isActive ? 'assets/icons/settings_active.svg' : 'assets/icons/settings.svg'"
+                alt="Settings" />
+            <p class="nav-text" [class.active]="settingsRla.isActive">Settings</p>
+        </div>          
+        
     </div>
-    <div class="social-links">
-        <div class="social">
-            <img src="./assets/icons/linkedin.svg" alt="Linkedin" width="16" height="16">
-        </div>
-        <div class="social">
-            <img src="./assets/icons/github.svg" alt="Github" width="16" height="16">
-        </div>
-        <div class="social">
-            <img src="./assets/icons/email.svg" alt="Gmail" width="16" height="16">
-        </div>
-    </div>
-
+    <hr />
     <div class="logout-option" (click)="logout()">
         <img src="../../../../../assets/icons/logout.svg" alt="Logout">
+        <p>Logout</p>
     </div>
 
 </div>

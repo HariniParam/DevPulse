@@ -19,11 +19,15 @@ export class SideNavComponent {
   popupType: 'success' | 'error' = 'success';
   showPopup: boolean = false;
   user: User | null = null;
+  previewUrl: string | null = null;
 
   ngOnInit(): void {
     this.authService.user$.subscribe(user => {
       this.user = user;
     });
+    if (this.user && this.user.profilepic) {
+      this.previewUrl = `http://localhost:8000/media/${this.user.profilepic}`;
+    }
   }
   
   logout() {

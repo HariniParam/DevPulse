@@ -34,7 +34,7 @@ export interface AuthResponse {
 export class AuthService {
   private baseUrl = 'http://localhost:8000/users';
   private _user: User | null = null;
-  private _userSubject = new BehaviorSubject<User | null>(this._user);
+  private _userSubject = new BehaviorSubject<User | null>(null);
   user$ = this._userSubject.asObservable();
 
   constructor(private http: HttpClient, private newsService: NewsService) {
@@ -42,9 +42,11 @@ export class AuthService {
       const storedUser = localStorage.getItem('auth_user');
       if (storedUser) {
         try {
-          this._user = JSON.parse(storedUser);
-          this._userSubject.next(this._user);
+          const user: User = JSON.parse(storedUser);
+          this._user = user;
+          this._userSubject.next(user);
         } catch (e) {
+          console.error('Invalid user data in localStorage');
         }
       }
     }
@@ -62,6 +64,7 @@ export class AuthService {
     }).pipe(
       tap((response: AuthResponse) => {
         this._user = response.user;
+        this._userSubject.next(response.user);
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_token', response.token);
           localStorage.setItem('auth_user', JSON.stringify(response.user));
@@ -88,10 +91,28 @@ export class AuthService {
 
   logout(): void {
     this._user = null;
+    this._userSubject.next(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      this.newsService.clearCache();
     }
+    this.newsService.clearCache();
+  }
+
+  isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp < now;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  isAuthenticated(): boolean {
+    if (typeof window === 'undefined') return false;
+
+    const token = localStorage.getItem('auth_token');
+    return !!token && !this.isTokenExpired(token);
   }
 }

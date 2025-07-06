@@ -32,6 +32,10 @@
                 background: var(--primary-color, #4a2c23);
                 color: white;
             }
+            &.answered{
+                background: var(--primary-color, #4a2c23);
+                color: white;
+            }
         }
     }
 }
@@ -190,5 +194,50 @@
                 background-color: #218838;           
             }
         }
+    }
+}
+
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.fancy-spinner {
+    position: relative;
+    width: 7rem;
+    height: 7rem;
+}
+
+.ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 5px solid transparent;
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1.8s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.ring:nth-child(1) {
+    border-top-color: var(--primary-color);
+    animation-delay: 0.6s;
+}
+
+.ring:nth-child(2) {
+    border-top-color: var(--secondary-card-color);
+    animation-delay: 0s;
+}
+
+.ring:nth-child(3) {
+    border-top-color: var(--secondary-text-color);
+    animation-delay: -0.6s;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

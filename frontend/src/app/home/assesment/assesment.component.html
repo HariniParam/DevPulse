@@ -3,6 +3,9 @@
         <div class="history-panel">
             <div class="history-header">
                 <h2 class="history-title">History</h2>
+                <div class="history-search-box">
+                  <input type="text" placeholder="Search History" [(ngModel)]="historySearch" />      
+                </div>
             </div>
             <div class="history-card-panel">
                 <div class="pagination-buttons">
@@ -28,6 +31,8 @@
                     <div class="test-card-date">
                       <img src="../../../assets/icons/calendar.svg" />
                       <p>{{ test.date | date: 'dd/MM/yyyy' }}</p>
+                      <img src="../../../assets/icons/bin.svg" class="delete-icon" alt="Delete Task"
+                      (click)="deleteTest(test.id, $event)" />
                     </div>
                   </div>
           
@@ -59,7 +64,7 @@
                 <div class="pagination-buttons">
                     <div
                         (click)="next()"
-                        *ngIf="startIndex + visibleCount < tests.length"
+                        *ngIf="startIndex + visibleCount < filteredTests.length"
                         class="right-button"
                     >
                         <img src="../../../assets/icons/right-arrow.png" alt="">

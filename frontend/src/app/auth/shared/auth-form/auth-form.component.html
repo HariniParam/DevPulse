@@ -41,16 +41,6 @@
       {{ isSignIn ? 'Sign In' : 'Sign Up' }}
     </button>
 
-    <!-- Social login - only shown for sign in -->
-    <ng-container *ngIf="isSignIn">
-      <div class="or-divider">
-        <span>Or</span>
-      </div>
-      <button class="google-button button">
-        <img src="./assets/images/google.png" alt="Google Logo"> Sign in with Google
-      </button>
-    </ng-container>
-
     <!-- Toggle link -->
     <p class="auth-toggle-link">
       {{ isSignIn ? "Don't have an account?" : 'Already have an account?' }}

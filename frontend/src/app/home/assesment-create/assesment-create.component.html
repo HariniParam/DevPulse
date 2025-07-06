@@ -1,15 +1,25 @@
 <div class="test-container">
     <header class="test-header">
       <div class="question-nav">
-        <button *ngFor="let q of questions"
-                (click)="selectQuestion(q.id)"
-                [class.active]="q.id === selectedQuestionId">
-          {{ q.id }}
+        <button *ngFor="let q of questions" (click)="selectQuestion(q.id)" [class.active]="q.id === selectedQuestionId"
+          [class.answered]="isAnswered(q)">
+          <ng-container *ngIf="isAnswered(q); else showId">
+            ✓
+          </ng-container>
+          <ng-template #showId>
+            {{ q.id }}
+          </ng-template>
         </button>
       </div>
     </header>
-  
-    <div class="test-body">
+    <div *ngIf="questions.length === 0" class="loader-container">
+      <div class="fancy-spinner">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+      </div>
+    </div>    
+    <div class="test-body" *ngIf="questions.length > 0">
       <aside class="left-panel">
         <ng-container *ngIf="selectedQuestion">
           <p>{{ selectedQuestionId }}. {{ selectedQuestion.text }}</p>
@@ -74,4 +84,5 @@
       </div>
     </div>
   </div>
+  
   

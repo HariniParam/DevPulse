@@ -363,5 +363,19 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
 
     clearInterval(this.timerInterval);
   }
+
+  isAnswered(q: any): boolean {
+    const answer = this.answers[q.id];
+
+    if (q.type === 'mcq') {
+      return answer !== undefined && answer !== null;
+    }
+
+    if (q.type === 'coding') {
+      return typeof answer === 'string' && answer.trim().length > 0;
+    }
+
+    return false;
+  }  
    
 }
