@@ -11,49 +11,89 @@
             </div>
         </div>
         <div class="left-switch">
-            <div class="switch-assesment" *ngIf="latestAssessment">
+            <div class="switch-assesment">
                 <div class="switch-top">
                     <div class="to-do-list">
-                    <img src="./assets/icons/to-do-list.svg" alt="">
+                        <img src="./assets/icons/to-do-list.svg" alt="">
                     </div>
-                    <img class="external-link-icon" src="./assets/icons/external_link.svg" 
-                    (click)="viewAnalysis(latestAssessment)" alt="">
+                    <img class="external-link-icon" src="./assets/icons/external_link.svg" alt="Go to Assessments"
+                        (click)="navigateToAssessment()" />
+
                 </div>
                 <h3>Assessment</h3>
-                <p>{{ latestAssessment.title }}</p>
-                <p>Overall Score: {{ latestAssessment.score*100/50}}%</p>
-                <div class="progress-container">
-                    <div class="progress-bar" [style.width.%]="latestAssessment.score / 50 * 100"></div>
-                </div>
+                <ng-container *ngIf="latestAssessment; else noAssessment">
+                    <p>{{ latestAssessment.title }}</p>
+                    <p>Overall Score: {{ latestAssessment.score * 100 / 50 }}%</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" [style.width.%]="latestAssessment.score / 50 * 100"></div>
+                    </div>
+                </ng-container>
+                <ng-template #noAssessment>
+                    <p>Start or take an assessment to see your progress.</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" [style.width.%]="0"></div>
+                    </div>
+                </ng-template>
             </div>
             <div class="switch-analysis">
                 <div class="switch-top">
                     <div class="to-do-list">
-                        <img src="./assets/icons/analysis-chart.svg" alt="">
+                        <img src="./assets/icons/to-do-list.svg" alt="task" />
                     </div>
-                    <img class="external-link-icon" src="./assets/icons/external_link.svg" alt="">
+                    <img class="external-link-icon" src="./assets/icons/external_link.svg" alt="Go to Tasks" (click)="navigateToTask()" />
+
                 </div>
-                <h3>Analysis</h3>
-                <p>Progress 75%</p>
-                <div class="progress-container">
-                    <div class="progress-bar" [style.width.%]="progress"></div>
-                </div>
+                <h3>Task</h3>
+                <ng-container *ngIf="latestTask; else noRecentTask">
+                    <p>Task : {{ latestTask.title }}</p>            
+                    <ng-container [ngSwitch]="latestTask.status">
+                        <p *ngSwitchCase="'TODO'">Progress: 0%</p>
+                        <p *ngSwitchCase="'IN_PROGRESS'">Progress: 50%</p>
+                        <p *ngSwitchCase="'COMPLETED'">Progress: 100%</p>
+                        <p *ngSwitchDefault>Progress: Unknown</p>
+                    </ng-container>
+            
+                    <div class="progress-container">
+                        <div class="progress-bar" [style.width.%]="
+                         latestTask.status === 'TODO' ? 0 :
+                         latestTask.status === 'IN_PROGRESS' ? 50 :
+                         latestTask.status === 'COMPLETED' ? 100 : 0">
+                        </div>
+                    </div>
+                </ng-container>
+            
+                <ng-template #noRecentTask>
+                    <p>No tasks found to show.</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" [style.width.%]="0"></div>
+                    </div>
+                </ng-template>
             </div>
-            <div class="switch-resume" *ngIf="latestResumeAnalysis">
+
+            <div class="switch-resume">
                 <div class="switch-top">
                     <div class="to-do-list">
                         <img src="./assets/icons/resume.svg" alt="Resume" />
                     </div>
-                    <img class="external-link-icon" src="./assets/icons/external_link.svg" 
-                    (click)="navigateToResumeAnalysis()" alt="More Options" />
+                    <img class="external-link-icon" src="./assets/icons/external_link.svg" (click)="navigateToResume()"
+                        alt="Go to Resume" />
                 </div>
                 <h3>Resume</h3>
-                <p>{{ latestResumeAnalysis.filename }}</p>
-                <p>Overall Score: {{ latestResumeAnalysis.overall_score }}%</p>
-                <div class="progress-container">
-                    <div class="progress-bar" [style.width.%]="latestResumeAnalysis.overall_score"></div>
-                </div>
+                <ng-container *ngIf="latestResumeAnalysis; else noResume">
+                    <p>{{ latestResumeAnalysis.filename }}</p>
+                    <p>Overall Score: {{ latestResumeAnalysis.overall_score }}%</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" [style.width.%]="latestResumeAnalysis.overall_score"></div>
+                    </div>
+                </ng-container>
+                <ng-template #noResume>
+                    <p>Upload a resume to start analysis.</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" [style.width.%]="0"></div>
+                    </div>
+                </ng-template>
             </div>
+
         </div>
         <div class="left-news" *ngIf="articles.length > 0">
             <h3 class="news-title">Latest News</h3>
@@ -102,7 +142,10 @@
             </ng-container>
 
             <ng-template #noTasks>
-                <p>No upcoming tasks found.</p>
+                <div class="no-continer">
+                    <img src="./assets/icons/no_task.svg" alt="No Task">
+                    <p>No upcoming tasks found.</p>
+                </div>
             </ng-template>
         </div>
     </div>

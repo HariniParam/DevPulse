@@ -22,6 +22,7 @@ export class HomepageComponent {
   isRightPanelVisible = true;
   latestResumeAnalysis: ResumeAnalysis | null = null;
   latestAssessment: AssessmentAttempt | null = null;
+  latestTask: Task | null = null;
   
   constructor(private router: Router, 
     private taskService: TaskService, 
@@ -42,6 +43,16 @@ export class HomepageComponent {
           },
           error: (err) => console.error('Failed to fetch assessment history:', err),
         });
+
+        //fetching previous resume analysis
+        this.resumeService.getLatestResumeAnalysis(user._id).subscribe({
+          next: (data) => {
+            this.latestResumeAnalysis = data;
+          },
+          error: (err) => {
+            console.error('Failed to fetch latest resume analysis:', err);
+          }
+        });
       }
     });
 
@@ -55,7 +66,15 @@ export class HomepageComponent {
 
       const grouped = this.groupTasksByDate(upcoming);
       this.groupedTasksArray = Object.entries(grouped).map(([date, tasks]) => ({ date, tasks }));
+
+      // 💡 Find the most recently modified or created task
+      this.latestTask = tasks.reduce((latest, current) => {
+        const latestTime = new Date(latest.modified_at || latest.created_at || 0).getTime();
+        const currentTime = new Date(current.modified_at || current.created_at || 0).getTime();
+        return currentTime > latestTime ? current : latest;
+      }, tasks[0]);
     });
+
 
     //fetching news details
     this.newsService.getNews().subscribe({
@@ -63,15 +82,6 @@ export class HomepageComponent {
       error: (err) => console.error('Failed to fetch news:', err)
     });
 
-    //fetching previous resume analysis
-    this.resumeService.getLatestResumeAnalysis().subscribe({
-      next: (data) => {
-        this.latestResumeAnalysis = data;
-      },
-      error: (err) => {
-        console.error('Failed to fetch latest resume analysis:', err);
-      },
-    });
   }
 
   toggleRightPanel() {
@@ -101,6 +111,14 @@ export class HomepageComponent {
     this.router.navigate(['/dashboard/tasklist'], {state: { openTaskDetail: true, taskId: taskId } });
   }
 
+  navigateToTask(): void {
+    if (this.latestTask?.id) {
+      this.navigateToTaskDetail(this.latestTask.id);
+    } else {
+      this.router.navigate(['/dashboard/tasklist']);
+    }
+  }
+
   //navigate to last attended test analysis
   viewAnalysis(test: { id: string }): void {
     this.router.navigate([`/dashboard/assesment/${test.id}/analysis`], {
@@ -108,6 +126,14 @@ export class HomepageComponent {
         analysisTestId: test.id
       }
     });
+  }
+
+  navigateToAssessment(): void {
+    if (this.latestAssessment) {
+      this.viewAnalysis(this.latestAssessment);
+    } else {
+      this.router.navigate(['/dashboard/assesment']);
+    }
   }
 
   //navigate to last resume analysis
@@ -118,6 +144,14 @@ export class HomepageComponent {
           resumeAnalysis: this.latestResumeAnalysis
         }
       });
+    }
+  }
+
+  navigateToResume(): void {
+    if (this.latestResumeAnalysis) {
+      this.navigateToResumeAnalysis();
+    } else {
+      this.router.navigate(['/dashboard/resume']);
     }
   }
 

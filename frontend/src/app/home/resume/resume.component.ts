@@ -4,6 +4,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { ResumeAnalysisService } from '../../services/resume-analysis.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 // Interface for internal use - flexible to handle API response variations
 interface AnalysisProgress {
@@ -38,7 +39,8 @@ export class ResumeComponent {
   constructor(
     private sanitizer: DomSanitizer,
     private resumeService: ResumeAnalysisService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -49,10 +51,10 @@ export class ResumeComponent {
       const subscoreEntries: { name: string; score: number; displayName: string }[] =
         data.subscores
           ? Object.entries(data.subscores).map(([key, score]) => ({
-              name: key,
-              score: score as number,
-              displayName: this.formatDisplayName(key)
-            }))
+            name: key,
+            score: score as number,
+            displayName: this.formatDisplayName(key)
+          }))
           : [];
 
       this.analysisProgress = {
@@ -60,8 +62,38 @@ export class ResumeComponent {
         analyses: subscoreEntries,
         summary: data.summary || '',
         recommendations: data.recommendations || '',
-        metadata: null
+        metadata: data || null
       };
+
+      if (data.pdf_base64 && data.pdf_content_type) {
+        const byteCharacters = atob(data.pdf_base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: data.pdf_content_type });
+
+        this.selectedPDF = new File([blob], data.filename || 'resume.pdf', { type: blob.type });
+        const blobURL = URL.createObjectURL(blob);
+        this.pdfURL = this.sanitizer.bypassSecurityTrustResourceUrl(blobURL + '#toolbar=0&navpanes=0&scrollbar=0');
+      }
+
+      else if (data.file_download_url) {
+        fetch(data.file_download_url)
+          .then(response => {
+            if (!response.ok) throw new Error("Failed to download resume file.");
+            return response.blob();
+          })
+          .then(blob => {
+            this.selectedPDF = new File([blob], data.filename || 'resume.pdf', { type: blob.type });
+            const blobURL = URL.createObjectURL(blob);
+            this.pdfURL = this.sanitizer.bypassSecurityTrustResourceUrl(blobURL + '#toolbar=0&navpanes=0&scrollbar=0');
+          })
+          .catch(err => {
+            console.error("Error fetching resume file:", err);
+          });
+      }
     }
   }
 
@@ -95,8 +127,15 @@ export class ResumeComponent {
       return;
     }
 
+    const user = this.authService.user;
+    if (!user) {
+      alert("User not logged in");
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', this.selectedPDF);
+    formData.append('user_id', user._id);
 
     this.resumeService.analyzeResume(formData).subscribe({
       next: (res: any) => {

@@ -8,6 +8,7 @@
                 </div>
             </div>
             <div class="history-card-panel">
+              <ng-container *ngIf="visibleTests.length > 0; else noHistory">
                 <div class="pagination-buttons">
                     <div 
                         (click)="previous()" 
@@ -70,6 +71,13 @@
                         <img src="../../../assets/icons/right-arrow.png" alt="">
                     </div>
                 </div>
+                </ng-container>
+                <ng-template #noHistory>
+                  <div class="no-history-container">
+                    <img src="../../../assets/icons/no_history.svg" alt="No History" />
+                    <p>No assessment history found.</p>
+                  </div>
+                </ng-template>
             </div>
         </div>
         <div class="upload-pdf-main-panel">
@@ -82,6 +90,7 @@
                     <input type="file" accept=".pdf" #fileInput hidden (change)="onFileSelected($event)">
                     </div>
                 </div>
+                <p>Upload a PDF to automatically generate and attend a personalized assessment</p>
             </div>
             <div class="uploaded-pdf-preview" *ngIf="selectedPDF">
                 <div class="pdf-file">
@@ -126,6 +135,7 @@
           </div>
         
           <div class="bookmark-list">
+            <ng-container *ngIf="filteredBookmarks().length > 0; else noBookmarks">
             <div class="bookmark-card" *ngFor="let test of filteredBookmarks()">
               <div class="bookmark-left">
                 <img src="../../../assets/icons/bookmark.svg" class="bookmark-icon" />
@@ -136,6 +146,13 @@
                 <button class="retake-button" (click)="retake(test)">Retake Test</button>
               </div>
             </div>
+            </ng-container>
+            <ng-template #noBookmarks>
+              <div class="no-bookmark-container">
+                <img src="../../../assets/icons/no_bookmark.svg" alt="No Bookmarks" />
+                <p>No bookmarks found.</p>
+              </div>
+            </ng-template>
           </div>
         </div>        
     </div>

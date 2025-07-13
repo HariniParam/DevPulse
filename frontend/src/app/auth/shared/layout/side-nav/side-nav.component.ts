@@ -24,18 +24,18 @@ export class SideNavComponent {
   ngOnInit(): void {
     this.authService.user$.subscribe(user => {
       this.user = user;
+      if (this.user && this.user.profilepic) {
+        this.previewUrl = `http://localhost:8000/media/${this.user.profilepic}?t=${Date.now()}`;
+      } else {
+        this.previewUrl = 'assets/images/profile.png';
+      }
     });
-    if (this.user && this.user.profilepic) {
-      this.previewUrl = `http://localhost:8000/media/${this.user.profilepic}`;
-    }
   }
-  
+
   logout() {
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('user');
-    this.newsService.clearCache();
     this.showAlert('Logout successful', 'success');
     setTimeout(() => {
+      this.authService.logout(); // clear user, localStorage, etc.
       this.router.navigate(['/signin']);
     }, 1500);
   }

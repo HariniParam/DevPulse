@@ -39,7 +39,7 @@ class SignupView(View):
                 'name': name,
                 'email': email,
                 'password': hashed_pw.decode(),
-                'profilepic': 'assets/images/default-profile.png',
+                'profilepic': 'profile.png',
                 'created_at': datetime.utcnow(),
                 'updated_at': datetime.utcnow()
             }

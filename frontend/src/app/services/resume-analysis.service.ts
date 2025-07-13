@@ -28,8 +28,9 @@ export class ResumeAnalysisService {
     return this.http.post<ResumeAnalysisResponse>('http://localhost:8000/resume/analyse/', formData);
   }
 
-  getLatestResumeAnalysis(): Observable<ResumeAnalysis> {
-    return this.http.get<ResumeAnalysis>('http://localhost:8000/resume/latest/');
-  }
+  getLatestResumeAnalysis(userId: string): Observable<ResumeAnalysis> {
+    return this.http.get<ResumeAnalysis>(`http://localhost:8000/resume/latest?user_id=${userId}`);
+}
+
   
 }

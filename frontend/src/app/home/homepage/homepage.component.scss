@@ -224,6 +224,8 @@
                     font-size: 1rem;
                     font-weight: bold;
                     color: var(--primary-color);
+                    text-decoration: underline;
+                    text-decoration-color: var(--primary-color);
                 }
 
                 p {
@@ -274,6 +276,17 @@
 
         .right-content {
             padding: 1rem 0;
+            height: calc(90% - 2rem);
+            overflow-y: scroll;
+            scrollbar-width: none;
+
+            .no-continer{
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
 
             h4 {
                 font-size: 0.875rem;

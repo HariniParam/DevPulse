@@ -355,8 +355,15 @@
               </div>
             </div>
             <div class="answer-summary">
-                <span class="your-answer">Your Answer: {{ String.fromCharCode(65 + (q.userAnswer ?? 0)) }}</span>
-                <span class="correct-answer">Correct Answer: {{ String.fromCharCode(65 + (q.correctAnswer ?? 0)) }}</span>
+                <span class="your-answer">
+                  Your Answer:
+                  {{ q.userAnswer !== null && q.userAnswer !== undefined ? String.fromCharCode(65 + q.userAnswer) : 'No Answer' }}
+                </span>
+                <span class="correct-answer">
+                  Correct Answer:
+                  {{ q.correctAnswer !== null && q.correctAnswer !== undefined ? String.fromCharCode(65 + q.correctAnswer) : 'No Answer'
+                  }}
+                </span>
             </div>
           </ng-container>
 

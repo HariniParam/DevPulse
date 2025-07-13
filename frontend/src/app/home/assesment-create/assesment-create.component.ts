@@ -13,18 +13,9 @@
   import { Router } from '@angular/router';
   import { isPlatformBrowser } from '@angular/common';
   import { SafeResourceUrl } from '@angular/platform-browser';
+import { AssessmentService, Question } from '../../services/assessment.service';
 
 declare const monaco: any;
-interface Question {
-  id: number;
-  type: 'mcq' | 'coding';
-  text: string;
-  options?: string[];
-  correctAnswer?: number;
-  code?: string;
-  language?: string;
-  testCases?: { input: string; expectedOutput: string }[];
-}
 
 @Component({
   selector: 'app-assesment-create',
@@ -62,7 +53,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private http: HttpClient,
+    private assessmentService: AssessmentService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     const navigation = this.router.getCurrentNavigation();
@@ -93,13 +84,13 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
   }
 
   loadRetakeTest(testId: string) {
-    this.http.get<any>(`http://localhost:8000/assessment/test/${testId}/`).subscribe({
+    this.assessmentService.getTestQuestions(testId).subscribe({
       next: (res) => {
         this.questions = res.questions || [];
         if (this.questions.length > 0) {
           this.selectedQuestionId = this.questions[0].id;
           this.selectedQuestion = this.questions[0];
-          this.startTimer();  
+          this.startTimer();
           this.questionStartTime = Date.now();
         }
       },
@@ -232,16 +223,13 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
   uploadPDF() {
     if (!this.selectedPDF) return;
 
-    const formData = new FormData();
-    formData.append('pdf_file', this.selectedPDF);
-
-    this.http.post('http://localhost:8000/assessment/upload-pdf/', formData).subscribe({
+    this.assessmentService.uploadPDF(this.selectedPDF).subscribe({
       next: (response: any) => {
         this.questions = response.questions;
         if (this.questions.length > 0) {
           this.selectedQuestionId = this.questions[0].id;
           this.selectedQuestion = this.questions[0];
-          this.startTimer();  
+          this.startTimer();
           this.questionStartTime = Date.now();
         } else {
           alert('No questions generated');
@@ -354,7 +342,7 @@ export class AssesmentCreateComponent implements OnInit, OnDestroy {
       marks: 0
     };
 
-    this.http.post('http://localhost:8000/assessment/submit/', payload).subscribe({
+    this.assessmentService.submitAssessment(payload).subscribe({
       next: () => {
         this.router.navigate(['/dashboard/assesment']);
       },

@@ -7,17 +7,8 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { AssessmentAttempt, AssessmentService } from '../../services/assessment.service';
 
-
-interface TestResult {
-  id: string;
-  title: string;
-  date: string;
-  numQuestions: number;
-  duration: number;
-  score: number;
-  bookmarked: boolean;
-}
 
 @Component({
   selector: 'app-assesment',
@@ -30,31 +21,31 @@ export class AssesmentComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   selectedPDF?: File;
   pdfURL?: SafeResourceUrl;
-  tests: TestResult[] = [];
+  tests: AssessmentAttempt[] = [];
   contests: Contest[] = [];
-  bookmarkedTests: TestResult[] = [];
+  bookmarkedTests: AssessmentAttempt[] = [];
   bookmarkSearch: string = '';
   _historySearch: string = '';
-  filteredTests: TestResult[] = [];
+  filteredTests: AssessmentAttempt[] = [];
 
   constructor(
     private sanitizer: DomSanitizer,
     private contestService: ContestService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private assessmentService: AssessmentService
   ) { }
 
   startIndex = 0;
   visibleCount = 3;
 
-  get visibleTests(): TestResult[] {
+  get visibleTests(): AssessmentAttempt[] {
     const query = this.historySearch.toLowerCase();
 
     this.filteredTests = this.tests.filter(test =>
       test.title.toLowerCase().includes(query)
     );
 
-    // Clamp startIndex if it exceeds the filtered array
     if (this.startIndex >= this.filteredTests.length) {
       this.startIndex = 0;
     }
@@ -68,7 +59,7 @@ export class AssesmentComponent implements OnInit {
   }
   set historySearch(value: string) {
     this._historySearch = value;
-    this.startIndex = 0; // Reset pagination when filtering
+    this.startIndex = 0; 
   }
   
 
@@ -84,23 +75,21 @@ export class AssesmentComponent implements OnInit {
     }
   }
 
-  toggleBookmark(test: TestResult): void {
+  toggleBookmark(test: AssessmentAttempt): void {
     test.bookmarked = !test.bookmarked;
 
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
     const userId = user._id;
 
-    this.http.patch(`http://localhost:8000/assessment/bookmark/${test.id}/`, {
-      bookmarked: test.bookmarked
-    }).subscribe({
+    this.assessmentService.updateBookmark(test.id, test.bookmarked).subscribe({
       next: () => {
         console.log('Bookmark updated successfully.');
-        this.fetchBookmarkedTests(userId); // ✅ only after success
+        this.fetchBookmarkedTests(userId);
       },
       error: (err) => {
         console.error('Failed to update bookmark:', err);
         alert('Failed to update bookmark in the database.');
-        test.bookmarked = !test.bookmarked; // revert on failure
+        test.bookmarked = !test.bookmarked;
       }
     });
   }
@@ -140,34 +129,23 @@ export class AssesmentComponent implements OnInit {
       return;
     }
 
-    this.fetchAssessmentHistory(userId);
+    this.assessmentService.getAssessmentHistory(userId).subscribe({
+      next: (res) => this.tests = res.tests,
+      error: (err) => {
+        console.error('Failed to fetch tests', err);
+        alert('Unable to load previous assessments.');
+      }
+    });
+
     this.fetchBookmarkedTests(userId);
     this.loadContests();
   }
 
-  private fetchAssessmentHistory(userId: string): void {
-    this.http.get<{ tests: TestResult[] }>(`http://localhost:8000/assessment/history/?user_id=${userId}`)
-      .subscribe({
-        next: (res) => {
-          this.tests = res.tests;
-        },
-        error: (err) => {
-          console.error('Failed to fetch tests', err);
-          alert('Unable to load previous assessments.');
-        }
-      });
-  }
-
   private fetchBookmarkedTests(userId: string): void {
-    this.http.get<{ tests: TestResult[] }>(`http://localhost:8000/assessment/bookmark/?user_id=${userId}`)
-      .subscribe({
-        next: (res) => {
-          this.bookmarkedTests = res.tests;
-        },
-        error: (err) => {
-          console.error('Failed to fetch bookmarks', err);
-        }
-      });
+    this.assessmentService.getBookmarkedTests(userId).subscribe({
+      next: (res) => this.bookmarkedTests = res.tests,
+      error: (err) => console.error('Failed to fetch bookmarks', err)
+    });
   }
 
   private loadContests(): void {
@@ -178,7 +156,7 @@ export class AssesmentComponent implements OnInit {
   }
   
   
-  retake(test: TestResult): void {
+  retake(test: AssessmentAttempt): void {
     this.router.navigate(['/dashboard/assesment/create'], {
       state: {
         retakeFromId: test.id
@@ -186,7 +164,7 @@ export class AssesmentComponent implements OnInit {
     });
   } 
   
-  viewAnalysis(test: TestResult): void {
+  viewAnalysis(test: AssessmentAttempt): void {
     this.router.navigate([`/dashboard/assesment/${test.id}/analysis`], {
       state: {
         analysisTestId: test.id
@@ -194,7 +172,7 @@ export class AssesmentComponent implements OnInit {
     });
   }
 
-  filteredBookmarks(): TestResult[] {
+  filteredBookmarks(): AssessmentAttempt[] {
     const query = this.bookmarkSearch.toLowerCase();
     return this.bookmarkedTests.filter(test =>
       test.title.toLowerCase().includes(query)
@@ -211,8 +189,8 @@ export class AssesmentComponent implements OnInit {
     });
   }
 
-  downloadTestAsPDF(test: TestResult): void {
-    this.http.get<{ questions: any[] }>(`http://localhost:8000/assessment/test/${test.id}/`)
+  downloadTestAsPDF(test: AssessmentAttempt): void {
+    this.assessmentService.getTestQuestions(test.id)
       .subscribe({
         next: (res) => {
           const questions = res.questions || [];
@@ -308,13 +286,14 @@ export class AssesmentComponent implements OnInit {
   deleteTest(testId: string, event: Event): void {
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
     const userId = user._id;
-    event.stopPropagation(); 
+    event.stopPropagation();
 
     if (confirm("Are you sure you want to delete this test?")) {
-      this.http.delete(`http://localhost:8000/assessment/test/${testId}/`).subscribe({
+      this.assessmentService.deleteTest(testId).subscribe({
         next: () => {
-          this.tests = this.tests.filter(t => String(t.id) !== testId); 
-          this.startIndex = 0; 
+          this.tests = this.tests.filter(t => String(t.id) !== testId);
+          this.startIndex = 0;
+          this.fetchBookmarkedTests(userId);
         },
         error: err => {
           console.error('Delete failed:', err);
@@ -322,7 +301,6 @@ export class AssesmentComponent implements OnInit {
         }
       });
     }
-    this.fetchBookmarkedTests(userId);
   }
   
   

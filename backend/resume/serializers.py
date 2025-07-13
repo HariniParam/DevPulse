@@ -3,6 +3,7 @@ import os
 
 class ResumeAnalyseSerializer(serializers.Serializer):
     file = serializers.FileField(required=True)
+    user_id = serializers.CharField(required=True)
 
     def validate_file(self, value):
         # Check file size (max 5MB)
