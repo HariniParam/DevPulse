@@ -11,17 +11,19 @@
             </div>
         </div>
         <div class="left-switch">
-            <div class="switch-assesment">
+            <div class="switch-assesment" *ngIf="latestAssessment">
                 <div class="switch-top">
                     <div class="to-do-list">
-                        <img src="./assets/icons/to-do-list.svg" alt="">
+                    <img src="./assets/icons/to-do-list.svg" alt="">
                     </div>
-                    <img src="./assets/icons/more_option.svg" alt="">
+                    <img class="external-link-icon" src="./assets/icons/external_link.svg" 
+                    (click)="viewAnalysis(latestAssessment)" alt="">
                 </div>
-                <h3>Assesment</h3>
-                <p>Progress 75%</p>
+                <h3>Assessment</h3>
+                <p>{{ latestAssessment.title }}</p>
+                <p>Overall Score: {{ latestAssessment.score*100/50}}%</p>
                 <div class="progress-container">
-                    <div class="progress-bar" [style.width.%]="progress"></div>
+                    <div class="progress-bar" [style.width.%]="latestAssessment.score / 50 * 100"></div>
                 </div>
             </div>
             <div class="switch-analysis">
@@ -29,7 +31,7 @@
                     <div class="to-do-list">
                         <img src="./assets/icons/analysis-chart.svg" alt="">
                     </div>
-                    <img src="./assets/icons/more_option.svg" alt="">
+                    <img class="external-link-icon" src="./assets/icons/external_link.svg" alt="">
                 </div>
                 <h3>Analysis</h3>
                 <p>Progress 75%</p>
@@ -37,46 +39,36 @@
                     <div class="progress-bar" [style.width.%]="progress"></div>
                 </div>
             </div>
-            <div class="switch-resume">
+            <div class="switch-resume" *ngIf="latestResumeAnalysis">
                 <div class="switch-top">
                     <div class="to-do-list">
-                        <img src="./assets/icons/resume.svg" alt="">
+                        <img src="./assets/icons/resume.svg" alt="Resume" />
                     </div>
-                    <img src="./assets/icons/more_option.svg" alt="">
+                    <img class="external-link-icon" src="./assets/icons/external_link.svg" 
+                    (click)="navigateToResumeAnalysis()" alt="More Options" />
                 </div>
                 <h3>Resume</h3>
-                <p>Progress 75%</p>
+                <p>{{ latestResumeAnalysis.filename }}</p>
+                <p>Overall Score: {{ latestResumeAnalysis.overall_score }}%</p>
                 <div class="progress-container">
-                    <div class="progress-bar" [style.width.%]="progress"></div>
+                    <div class="progress-bar" [style.width.%]="latestResumeAnalysis.overall_score"></div>
                 </div>
             </div>
         </div>
         <div class="left-news" *ngIf="articles.length > 0">
-            <div class="main-news">
-                <a [href]="articles[0].url" target="_blank">
-                    <img [src]="articles[0].urlToImage || './assets/icons/news.svg'" alt="Main news image">
-                    <p>{{ articles[0].title }}</p>
+            <h3 class="news-title">Latest News</h3>
+            <div class="news-grid">
+                <div class="news-card" *ngFor="let article of articles">
+                <a [href]="article.url" target="_blank">
+                    <img [src]="article.urlToImage || './assets/icons/news.svg'" alt="news" />
+                    <h4>{{ article.title }}</h4>
                 </a>
-                <p>{{ articles[0].description }}</p>
-                <p><small>By {{ articles[0].author || 'Unknown' }} | {{ articles[0].publishedAt | date:'mediumDate' }}</small></p>
-                <small>Source: {{ articles[0].source.name }}</small>
-            </div>
-
-            <div class="side-news">
-                <div class="side-news-item" *ngFor="let article of articles.slice(1)">
-                    <img [src]="article.urlToImage || './assets/icons/news.svg'" alt="news">
-                    <div class="side-news-content">
-                        <a [href]="article.url" target="_blank">
-                            <p>{{ article.title }}</p>
-                        </a>
-                        <p>{{ articles[0].description }}</p>
-                        <p class="news-detail"><small>By {{ articles[0].author || 'Unknown' }} | {{ articles[0].publishedAt | date:'mediumDate' }}</small></p>
-                        <small>Source: {{ article.source.name }}</small>
-                        <hr />
-                    </div>
+                <small>By {{ article.author || 'Unknown' }} | {{ article.publishedAt | date:'mediumDate' }}</small>
+                <small>Source: {{ article.source.name }}</small>
                 </div>
             </div>
         </div>
+
         <!-- Optional fallback when no articles -->
         <div class="left-news" *ngIf="articles.length === 0">
             <p>Loading news or no articles found.</p>

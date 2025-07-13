@@ -82,6 +82,11 @@
                 font-weight: bold;
                 color: var(--primary-color);
                 font-size: 1.25rem;
+                &.active {
+                    font-weight: 900;
+                    text-decoration: underline;
+                    font-style: italic;
+                }
             }
         }
     }

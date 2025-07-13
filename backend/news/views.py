@@ -13,7 +13,7 @@ def get_news(request):
     params = {
         'q': query,
         'language': 'en',
-        'pageSize': 15,
+        'pageSize': 30,
         'apiKey': api_key,
     }
 

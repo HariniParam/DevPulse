@@ -3,6 +3,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { ResumeAnalysisService } from '../../services/resume-analysis.service';
+import { Router } from '@angular/router';
 
 // Interface for internal use - flexible to handle API response variations
 interface AnalysisProgress {
@@ -36,8 +37,33 @@ export class ResumeComponent {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private resumeService: ResumeAnalysisService
+    private resumeService: ResumeAnalysisService,
+    private router: Router
   ) { }
+
+  ngOnInit(): void {
+    const navState = history.state;
+    if (navState && navState.resumeAnalysis) {
+      const data = navState.resumeAnalysis;
+
+      const subscoreEntries: { name: string; score: number; displayName: string }[] =
+        data.subscores
+          ? Object.entries(data.subscores).map(([key, score]) => ({
+              name: key,
+              score: score as number,
+              displayName: this.formatDisplayName(key)
+            }))
+          : [];
+
+      this.analysisProgress = {
+        overallScore: data.overall_score || 0,
+        analyses: subscoreEntries,
+        summary: data.summary || '',
+        recommendations: data.recommendations || '',
+        metadata: null
+      };
+    }
+  }
 
   onPanelClick(): void {
     this.fileInput.nativeElement.click();
