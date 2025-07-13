@@ -78,4 +78,13 @@ class ResumeAnalyseAPIView(APIView):
             "message": "Resume Analysis API",
             "supported_formats": ["PDF", "TXT"],
             "max_file_size": "5MB"
-        })       
+        })      
+
+# Fetch the latest resume analysis document by timestamp descending
+class LatestResumeAnalysisAPIView(APIView):
+    def get(self, request):
+        latest_doc = resume_analysis_collection.find_one(sort=[('timestamp', -1)])
+        if not latest_doc:
+            return Response({"message": "No resume analysis found"}, status=status.HTTP_404_NOT_FOUND)
+        latest_doc["_id"] = str(latest_doc["_id"])
+        return Response(latest_doc, status=status.HTTP_200_OK) 

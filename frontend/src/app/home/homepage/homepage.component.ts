@@ -4,6 +4,8 @@ import { TaskService, Task } from '../../services/task.service';
 import { AuthService, User } from '../../services/auth.service';
 import { NewsService, Article } from '../../services/news.service';
 import { CommonModule } from '@angular/common';
+import { ResumeAnalysisService, ResumeAnalysis, ResumeAnalysisResponse } from '../../services/resume-analysis.service';
+import { AssessmentService, AssessmentAttempt } from '../../services/assessment.service';
 
 @Component({
   selector: 'app-homepage',
@@ -18,16 +20,29 @@ export class HomepageComponent {
   groupedTasksArray: { date: string, tasks: Task[] }[] = [];
   articles: Article[] = [];
   isRightPanelVisible = true;
-
+  latestResumeAnalysis: ResumeAnalysis | null = null;
+  latestAssessment: AssessmentAttempt | null = null;
+  
   constructor(private router: Router, 
     private taskService: TaskService, 
     private authService: AuthService, 
-    private newsService: NewsService) {}
+    private newsService: NewsService,
+    private resumeService: ResumeAnalysisService,
+    private assessmentService: AssessmentService) {}
 
   ngOnInit(): void {
     //fetching user details
     this.authService.user$.subscribe(user => {
       this.user = user;
+      if (user?._id) {
+        //fetching last attended assessment details
+        this.assessmentService.getAssessmentHistory(user._id).subscribe({
+          next: (res) => {
+            this.latestAssessment = res.tests.length > 0 ? res.tests[0] : null;
+          },
+          error: (err) => console.error('Failed to fetch assessment history:', err),
+        });
+      }
     });
 
     //fetching upcoming scheduled task
@@ -46,6 +61,16 @@ export class HomepageComponent {
     this.newsService.getNews().subscribe({
       next: (data) => this.articles = data,
       error: (err) => console.error('Failed to fetch news:', err)
+    });
+
+    //fetching previous resume analysis
+    this.resumeService.getLatestResumeAnalysis().subscribe({
+      next: (data) => {
+        this.latestResumeAnalysis = data;
+      },
+      error: (err) => {
+        console.error('Failed to fetch latest resume analysis:', err);
+      },
     });
   }
 
@@ -75,4 +100,25 @@ export class HomepageComponent {
     if (!taskId) return;
     this.router.navigate(['/dashboard/tasklist'], {state: { openTaskDetail: true, taskId: taskId } });
   }
+
+  //navigate to last attended test analysis
+  viewAnalysis(test: { id: string }): void {
+    this.router.navigate([`/dashboard/assesment/${test.id}/analysis`], {
+      state: {
+        analysisTestId: test.id
+      }
+    });
+  }
+
+  //navigate to last resume analysis
+  navigateToResumeAnalysis(): void {
+    if (this.latestResumeAnalysis) {
+      this.router.navigate(['/dashboard/resume'], {
+        state: {
+          resumeAnalysis: this.latestResumeAnalysis
+        }
+      });
+    }
+  }
+
 }
