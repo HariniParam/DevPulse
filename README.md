@@ -88,17 +88,3 @@ DevPulse is a full-stack web application that helps users manage tasks, take AI-
    ```
 
 ---
-
-## AI Integration
-
-- **PDF Parsing & MCQ Generation**: NLP pipeline powered by Groq models.
-- **Performance Nudges**: Triggers reminders and insights if user productivity drops.
-- **Optional Resume Intelligence**: Resume scoring and keyword extraction .
-
----
-
-## Contributing
-
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
----
